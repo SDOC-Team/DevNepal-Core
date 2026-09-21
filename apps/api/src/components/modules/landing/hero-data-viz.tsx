@@ -100,7 +100,10 @@ function HeroDataViz({ className }: { className?: string }) {
     <div
       ref={hostRef}
       data-slot="hero-data-viz"
-      className={cn("relative isolate h-64 min-w-0 sm:h-80 lg:h-full lg:min-h-[26rem]", className)}
+      className={cn(
+        "relative isolate h-64 min-w-0 sm:h-80 lg:h-full lg:min-h-[clamp(26rem,calc(80svh-15rem),44rem)]",
+        className,
+      )}
     >
       <div
         ref={canvasHostRef}
