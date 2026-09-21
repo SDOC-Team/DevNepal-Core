@@ -15,6 +15,7 @@ import { LOCALES, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const ASSETS = {
+  emblem: "/official-website-bar/emblem-of-nepal.png",
   accessibility: "/official-website-bar/accessibility.svg",
   divider: "/official-website-bar/divider.svg",
   language: "/official-website-bar/language.svg",
@@ -89,13 +90,15 @@ function OfficialWebsiteBar({ locale }: { locale: Locale }) {
 
   return (
     <div data-slot="official-website-bar" className="w-full">
-      <div className="bg-primary px-3 py-0.5 text-primary-foreground sm:px-6 lg:px-12">
-        <div className="mx-auto flex min-h-7 sm:min-h-8 w-full max-w-[1200px] flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-primary px-4 py-0.5 text-primary-foreground sm:px-8 lg:px-16">
+        <div className="flex min-h-7 w-full flex-wrap items-center justify-between gap-3 text-xs sm:min-h-8">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
+            {/* biome-ignore lint/performance/noImgElement: national emblem */}
+            <img src={ASSETS.emblem} alt="" width={16} height={14} className="shrink-0" />
             <p className="text-[11px] font-medium sm:text-xs">
               {locale === "ne"
-                ? "समुदायद्वारा निर्मित खुला स्रोत प्लेटफर्म"
-                : "A community-built open-source platform"}
+                ? "नेपाल सरकारको आधिकारिक वेबसाइट"
+                : "A Nepal Government Official Website"}
             </p>
           </div>
 
