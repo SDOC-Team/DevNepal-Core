@@ -421,15 +421,28 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     }
   };
 
-  const resize = () => {
+  type Box = { width: number; height: number; short: number; margin: number };
+
+  /** One layout read, plus the arc margin every fit derives from it. */
+  const measure = (): Box | null => {
     const { width, height } = host.getBoundingClientRect();
-    if (width === 0 || height === 0) return;
+    if (width === 0 || height === 0) return null;
     const short = Math.min(width, height);
-    const margin = THREE.MathUtils.clamp(short * ARC_MARGIN.ratio, ARC_MARGIN.min, ARC_MARGIN.max);
-    // As big as the canvas allows. Which side of the box it sits on is the
-    // caller's to decide: the box stays short and wide in the stacked layout
-    // too, so its shape alone cannot tell the two compositions apart.
-    sphereRadiusPx = short / 2 - margin;
+    return {
+      width,
+      height,
+      short,
+      margin: THREE.MathUtils.clamp(short * ARC_MARGIN.ratio, ARC_MARGIN.min, ARC_MARGIN.max),
+    };
+  };
+
+  /**
+   * Camera framing alone. Where the sphere sits on the x axis is the caller's
+   * to decide: the box stays short and wide in the stacked layout too, so its
+   * shape cannot tell the two compositions apart. Touches no GPU buffer, so an
+   * alignment change costs a projection matrix rather than a reallocated canvas.
+   */
+  const applyViewOffset = ({ width, height, margin }: Box) => {
     const centerX = alignRight
       ? Math.max(width / 2, width - sphereRadiusPx - margin - RIGHT_INSET)
       : width / 2;
@@ -446,7 +459,15 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     camera.aspect = 1;
     camera.setViewOffset(full, full, full / 2 - centerX, full / 2 - centerY, width, height);
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
+  };
+
+  const resize = () => {
+    const box = measure();
+    if (box === null) return;
+    // As big as the canvas allows.
+    sphereRadiusPx = box.short / 2 - box.margin;
+    applyViewOffset(box);
+    renderer.setSize(box.width, box.height, false);
     applyScreenSizes();
   };
   resize();
@@ -569,10 +590,17 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
       reduced = value;
     },
     setAlignment: (value) => {
+      if (disposed) return;
       const next = value === "right";
       if (next === alignRight) return;
       alignRight = next;
-      resize();
+      const box = measure();
+      // A flip that lands on a zero-sized box is picked up by the next resize.
+      if (box === null) return;
+      // Only the framing changed, so the drawing buffer survives — but nothing
+      // else will repaint it if the frame loop is stopped (hero off-screen).
+      applyViewOffset(box);
+      frame(0);
     },
     loadLand,
     dispose,

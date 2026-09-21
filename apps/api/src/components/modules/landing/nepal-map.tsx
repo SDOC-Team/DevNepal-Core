@@ -5,14 +5,16 @@ import { cn } from "@/lib/utils";
  * as the globe's land mask), equirectangular with a cos(lat) width
  * correction. Hairline cells are masked by a Gaussian-blurred copy of the
  * shape, so the grid dissolves before it reaches the border — no outline.
- * Scales to cover its box (`preserveAspectRatio: slice`); colour is
- * `currentColor`; strokes stay 1px at any size.
+ * Fits inside its box (`preserveAspectRatio: meet`) so the country stays
+ * recognisable at every aspect ratio — `slice` cropped away three quarters of
+ * its width once the hero stacked. Colour is `currentColor`; strokes stay 1px
+ * at any size.
  */
 function NepalMap({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 880 497"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden
       focusable="false"
       className={cn("block h-full w-full", className)}
