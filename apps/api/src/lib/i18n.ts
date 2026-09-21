@@ -48,7 +48,7 @@ const en = {
   home: {
     tag: "Open public work",
     titleLine1: "Public technology,",
-    titleLine2: "built in public.",
+    titleLine2: "Built in public.",
     lead: "One project publishes the technology work it needs help with, and anyone can contribute. The work happens in its public repository on GitHub, so no portal account is needed to start.",
     browseIssues: "Browse open issues",
     browseProject: "Open the project",

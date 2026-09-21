@@ -79,6 +79,12 @@ export type GlobeScene = {
    */
   setPalette(accentCss: string, neutralCss: string): void;
   setReducedMotion(reduced: boolean): void;
+  /**
+   * Where the sphere sits in its box. `"right"` is the side-by-side hero, with
+   * the copy to its left; `"center"` is the stacked layout, where the globe has
+   * the full width to itself.
+   */
+  setAlignment(alignment: "center" | "right"): void;
   /** Decode the land mask and drop in the halftone continents. */
   loadLand(url: string, signal?: AbortSignal): Promise<void>;
   dispose(): void;
@@ -335,6 +341,7 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
   const baseYaw = -THREE.MathUtils.degToRad(HUB.lon) + HUB_YAW;
   let time = 0;
   let reduced = false;
+  let alignRight = true;
   let disposed = false;
   let dots: THREE.InstancedMesh<THREE.CircleGeometry, THREE.ShaderMaterial> | null = null;
   let sphereRadiusPx = 200;
@@ -419,10 +426,13 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     if (width === 0 || height === 0) return;
     const short = Math.min(width, height);
     const margin = THREE.MathUtils.clamp(short * ARC_MARGIN.ratio, ARC_MARGIN.min, ARC_MARGIN.max);
-    // As big as the canvas allows. Sits right of centre in wide boxes (the
-    // hero copy is on the left) and centres itself once the box is narrow.
+    // As big as the canvas allows. Which side of the box it sits on is the
+    // caller's to decide: the box stays short and wide in the stacked layout
+    // too, so its shape alone cannot tell the two compositions apart.
     sphereRadiusPx = short / 2 - margin;
-    const centerX = Math.max(width / 2, width - sphereRadiusPx - margin - RIGHT_INSET);
+    const centerX = alignRight
+      ? Math.max(width / 2, width - sphereRadiusPx - margin - RIGHT_INSET)
+      : width / 2;
     const centerY = height / 2;
     // Size of a square virtual viewport in which an on-axis sphere has radius
     // `sphereRadiusPx`; the canvas is a window into it, so the sphere is a true
@@ -557,6 +567,12 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     setPalette,
     setReducedMotion: (value) => {
       reduced = value;
+    },
+    setAlignment: (value) => {
+      const next = value === "right";
+      if (next === alignRight) return;
+      alignRight = next;
+      resize();
     },
     loadLand,
     dispose,
