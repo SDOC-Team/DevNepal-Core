@@ -79,6 +79,12 @@ export type GlobeScene = {
    */
   setPalette(accentCss: string, neutralCss: string): void;
   setReducedMotion(reduced: boolean): void;
+  /**
+   * Where the sphere sits in its box. `"right"` is the side-by-side hero, with
+   * the copy to its left; `"center"` is the stacked layout, where the globe has
+   * the full width to itself.
+   */
+  setAlignment(alignment: "center" | "right"): void;
   /** Decode the land mask and drop in the halftone continents. */
   loadLand(url: string, signal?: AbortSignal): Promise<void>;
   dispose(): void;
@@ -335,6 +341,7 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
   const baseYaw = -THREE.MathUtils.degToRad(HUB.lon) + HUB_YAW;
   let time = 0;
   let reduced = false;
+  let alignRight = true;
   let disposed = false;
   let dots: THREE.InstancedMesh<THREE.CircleGeometry, THREE.ShaderMaterial> | null = null;
   let sphereRadiusPx = 200;
@@ -414,15 +421,31 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     }
   };
 
-  const resize = () => {
+  type Box = { width: number; height: number; short: number; margin: number };
+
+  /** One layout read, plus the arc margin every fit derives from it. */
+  const measure = (): Box | null => {
     const { width, height } = host.getBoundingClientRect();
-    if (width === 0 || height === 0) return;
+    if (width === 0 || height === 0) return null;
     const short = Math.min(width, height);
-    const margin = THREE.MathUtils.clamp(short * ARC_MARGIN.ratio, ARC_MARGIN.min, ARC_MARGIN.max);
-    // As big as the canvas allows. Sits right of centre in wide boxes (the
-    // hero copy is on the left) and centres itself once the box is narrow.
-    sphereRadiusPx = short / 2 - margin;
-    const centerX = Math.max(width / 2, width - sphereRadiusPx - margin - RIGHT_INSET);
+    return {
+      width,
+      height,
+      short,
+      margin: THREE.MathUtils.clamp(short * ARC_MARGIN.ratio, ARC_MARGIN.min, ARC_MARGIN.max),
+    };
+  };
+
+  /**
+   * Camera framing alone. Where the sphere sits on the x axis is the caller's
+   * to decide: the box stays short and wide in the stacked layout too, so its
+   * shape cannot tell the two compositions apart. Touches no GPU buffer, so an
+   * alignment change costs a projection matrix rather than a reallocated canvas.
+   */
+  const applyViewOffset = ({ width, height, margin }: Box) => {
+    const centerX = alignRight
+      ? Math.max(width / 2, width - sphereRadiusPx - margin - RIGHT_INSET)
+      : width / 2;
     const centerY = height / 2;
     // Size of a square virtual viewport in which an on-axis sphere has radius
     // `sphereRadiusPx`; the canvas is a window into it, so the sphere is a true
@@ -436,7 +459,15 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     camera.aspect = 1;
     camera.setViewOffset(full, full, full / 2 - centerX, full / 2 - centerY, width, height);
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height, false);
+  };
+
+  const resize = () => {
+    const box = measure();
+    if (box === null) return;
+    // As big as the canvas allows.
+    sphereRadiusPx = box.short / 2 - box.margin;
+    applyViewOffset(box);
+    renderer.setSize(box.width, box.height, false);
     applyScreenSizes();
   };
   resize();
@@ -557,6 +588,19 @@ export function createGlobeScene(host: HTMLElement): GlobeScene | null {
     setPalette,
     setReducedMotion: (value) => {
       reduced = value;
+    },
+    setAlignment: (value) => {
+      if (disposed) return;
+      const next = value === "right";
+      if (next === alignRight) return;
+      alignRight = next;
+      const box = measure();
+      // A flip that lands on a zero-sized box is picked up by the next resize.
+      if (box === null) return;
+      // Only the framing changed, so the drawing buffer survives — but nothing
+      // else will repaint it if the frame loop is stopped (hero off-screen).
+      applyViewOffset(box);
+      frame(0);
     },
     loadLand,
     dispose,

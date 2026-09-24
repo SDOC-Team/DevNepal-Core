@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { createGlobeScene } from "./hero-globe/scene";
 
 const LAND_MASK_URL = "/hero/land-mask.png";
+/** Tailwind's `lg`, the width at which the hero switches to its two-column layout. */
+const LG_BREAKPOINT = "64rem";
 
 function HeroDataViz({ className }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,14 @@ function HeroDataViz({ className }: { className?: string }) {
     const syncMotion = () => globe.setReducedMotion(reducedMotion.matches);
     syncMotion();
     reducedMotion.addEventListener("change", syncMotion);
+
+    // The hero puts the copy beside the globe from `lg` up and stacks them
+    // below it. Stacked, the globe owns the full width and belongs in the
+    // middle of it.
+    const sideBySide = window.matchMedia(`(min-width: ${LG_BREAKPOINT})`);
+    const syncAlignment = () => globe.setAlignment(sideBySide.matches ? "right" : "center");
+    syncAlignment();
+    sideBySide.addEventListener("change", syncAlignment);
 
     const abort = new AbortController();
     globe.loadLand(LAND_MASK_URL, abort.signal).catch((error: unknown) => {
@@ -92,6 +102,7 @@ function HeroDataViz({ className }: { className?: string }) {
       resize.disconnect();
       theme.disconnect();
       reducedMotion.removeEventListener("change", syncMotion);
+      sideBySide.removeEventListener("change", syncAlignment);
       globe.dispose();
     };
   }, []);
@@ -100,7 +111,10 @@ function HeroDataViz({ className }: { className?: string }) {
     <div
       ref={hostRef}
       data-slot="hero-data-viz"
-      className={cn("relative isolate h-64 min-w-0 sm:h-80 lg:h-full lg:min-h-[26rem]", className)}
+      className={cn(
+        "relative isolate h-64 min-w-0 sm:h-80 lg:h-full lg:min-h-[clamp(26rem,calc(80svh-15rem),44rem)]",
+        className,
+      )}
     >
       <div
         ref={canvasHostRef}

@@ -10,11 +10,11 @@ const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: {
-    default: "Dev Nepal — public technology, built in public",
+    default: "Dev Nepal — Public technology, Built in public",
     template: "%s · Dev Nepal",
   },
   description:
-    "Public technology, built in public — one project, its open issues, and the people contributing to it.",
+    "Public technology, Built in public — one project, its open issues, and the people contributing to it.",
   icons: {
     icon: [
       {
