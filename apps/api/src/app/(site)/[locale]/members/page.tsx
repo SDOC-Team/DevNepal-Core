@@ -1,14 +1,14 @@
 "use client";
 
 import { SKILLS } from "@gov-portal/shared";
-import { BuildingsIcon, MapPinIcon, RowsIcon, SquaresFourIcon } from "@phosphor-icons/react/ssr";
+import { RowsIcon, SquaresFourIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { ErrorPanel, LoadingPanel } from "@/components/modules/common";
-import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MemberCard } from "@/components/modules/members";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLocale, useMediaQuery, useMemberFilters, useMembers } from "@/hooks";
 import { localePath } from "@/lib/i18n";
@@ -190,118 +190,7 @@ export default function MembersPage() {
             /* Grid View */
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visible.map((member) => (
-                <Card
-                  key={member.githubId}
-                  className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-xs"
-                >
-                  <div className="space-y-4">
-                    {/* Top Row: Avatar + Name */}
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <Avatar className="size-12">
-                          <AvatarImage
-                            src={
-                              member.avatarUrl ?? `https://github.com/${member.githubUsername}.png`
-                            }
-                            alt={member.displayName}
-                          />
-                          <AvatarFallback>
-                            {member.displayName.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                          <AvatarBadge className="size-4 text-primary fill-primary" />
-                        </Avatar>
-                        <div className="min-w-0">
-                          <Link
-                            href={localePath(locale, `/members/${member.githubUsername}`)}
-                            className="block truncate text-base font-bold text-foreground transition-colors hover:text-primary"
-                          >
-                            {member.displayName}
-                          </Link>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {member.headline ?? `@${member.githubUsername}`}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Metadata Subtitle */}
-                    {member.affiliation !== null || member.location !== null ? (
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                        {member.affiliation !== null ? (
-                          <span className="flex items-center gap-1">
-                            <BuildingsIcon className="size-3.5 shrink-0" />
-                            <span>{member.affiliation}</span>
-                          </span>
-                        ) : null}
-                        {member.affiliation !== null && member.location !== null ? (
-                          <span>|</span>
-                        ) : null}
-                        {member.location !== null ? (
-                          <span className="flex items-center gap-1">
-                            <MapPinIcon className="size-3.5 shrink-0" />
-                            <span>{member.location}</span>
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {/* Skills Chips */}
-                    {member.skills.length > 0
-                      ? (() => {
-                          const shown = member.skills.slice(0, 2);
-                          const hidden = member.skills.slice(2);
-                          return (
-                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                              {shown.map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="rounded-md border border-border bg-muted/60 px-2 py-0.5 text-xs text-foreground"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                              {hidden.length > 0 ? (
-                                <div className="relative group inline-flex">
-                                  <span
-                                    title={hidden.join(", ")}
-                                    className="rounded-md border border-border bg-muted/60 px-2 py-0.5 text-xs text-muted-foreground cursor-pointer transition-colors hover:bg-accent hover:text-foreground"
-                                  >
-                                    +{hidden.length} more
-                                  </span>
-                                  <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 opacity-0 transition-all duration-150 group-hover:opacity-100 group-hover:pointer-events-auto z-50">
-                                    <div className="flex flex-wrap gap-1 rounded-md border border-border bg-popover p-2 text-xs font-normal text-popover-foreground shadow-md whitespace-nowrap max-w-[220px]">
-                                      {hidden.map((skill) => (
-                                        <span
-                                          key={skill}
-                                          className="rounded bg-muted px-1.5 py-0.5 text-[11px]"
-                                        >
-                                          {skill}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : null}
-                            </div>
-                          );
-                        })()
-                      : null}
-                  </div>
-
-                  {/* View Profile Action */}
-                  <div className="pt-5 mt-4 border-t border-border/50">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      render={
-                        <Link href={localePath(locale, `/members/${member.githubUsername}`)} />
-                      }
-                      className="w-full sm:w-auto"
-                    >
-                      {dict.members.viewProfile}
-                    </Button>
-                  </div>
-                </Card>
+                <MemberCard key={member.githubId} member={member} dict={dict} locale={locale} />
               ))}
             </div>
           ) : (

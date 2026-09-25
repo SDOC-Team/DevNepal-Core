@@ -1,8 +1,7 @@
 import type { PublicMemberDto } from "@gov-portal/shared";
 import Link from "next/link";
-
+import { MemberCard } from "@/components/modules/members";
 import { Button } from "@/components/ui/button";
-import { MemberCard } from "@/components/ui/member-card";
 import { type Dictionary, type Locale, localePath } from "@/lib/i18n";
 
 export function MembersSection({

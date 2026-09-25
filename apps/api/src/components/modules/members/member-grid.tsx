@@ -1,8 +1,8 @@
 import type { PublicMemberDto } from "@gov-portal/shared";
 
 import { Button } from "@/components/ui/button";
-import { MemberCard } from "@/components/ui/member-card";
 import type { Dictionary, Locale } from "@/lib/i18n";
+import { MemberCard } from "./member-card";
 
 /** Directory results, or an empty state offering to clear the filters. */
 export function MemberGrid({

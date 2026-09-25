@@ -215,6 +215,10 @@ const en = {
     countMatches: "members match the current directory",
     discoverable: "Approved member",
     viewProfile: "View profile",
+    /** Badge on a member card singled out on the portal. */
+    featured: "Featured",
+    /** Follows the count of skills that did not fit on the card: "+4 more". */
+    moreSkills: "more",
     emptyTitle: "No members match these filters.",
     emptyBody: "Try another name, headline, or skill.",
     clear: "Clear",
@@ -552,6 +556,8 @@ const ne: Dictionary = {
     countMatches: "सदस्यहरू वर्तमान निर्देशिकासँग मिल्छन्",
     discoverable: "स्वीकृत सदस्य",
     viewProfile: "प्रोफाइल हेर्नुहोस्",
+    featured: "विशेष",
+    moreSkills: "थप",
     emptyTitle: "यी फिल्टरसँग मिल्ने सदस्य छैनन्।",
     emptyBody: "अर्को नाम, शीर्षक वा सीप प्रयास गर्नुहोस्।",
     clear: "हटाउनुहोस्",
