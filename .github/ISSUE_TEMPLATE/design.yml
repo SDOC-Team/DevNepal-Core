@@ -1,12 +1,11 @@
-name: Design or accessibility
-description: Propose an interface improvement or report an accessibility problem
-labels: [design]
+name: Design
+description: Propose an interface or visual-design improvement
+labels: [design, needs-spec]
 body:
   - type: markdown
     attributes:
       value: |
-        Icons, accessibility fixes, typography and content are open now.
-        The core visual language is being settled by the design team — we will open it once the design system is published.
+        Use this form for visual or interaction design proposals. For keyboard, focus, screen-reader, contrast, or touch-target problems, use the Accessibility form.
   - type: textarea
     id: problem
     attributes:
@@ -22,14 +21,16 @@ body:
       label: Proposal
       description: Screenshot, link, or description.
     validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Choose the closest area. Maintainers will apply the matching area label.
+      options: ["area/portal", "area/members", "area/ui", "area/content", "area/tooling", "Not sure"]
+    validations: { required: true }
   - type: textarea
     id: bilingual
     attributes:
       label: How does this work in both languages?
       description: Required. Devanagari has different line-height and width behaviour from Latin.
     validations: { required: true }
-  - type: textarea
-    id: a11y
-    attributes:
-      label: Accessibility
-      description: Keyboard operation, focus order, contrast.
