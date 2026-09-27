@@ -18,7 +18,7 @@ describe("GET /v1/project", () => {
   });
 
   it("returns the project with open issue and approved member counts", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     await createIssue({ projectId: project.id, number: 1, state: "open" });
     await createIssue({ projectId: project.id, number: 2, state: "open" });
     await createIssue({ projectId: project.id, number: 3, state: "closed" });
@@ -28,7 +28,7 @@ describe("GET /v1/project", () => {
     const response = await getProject();
     expect(response.status).toBe(200);
     const payload = (await response.json()) as { project: Record<string, unknown> };
-    expect(payload.project.fullName).toBe("voidash/gov-portal");
+    expect(payload.project.fullName).toBe("SDOC-Team/devnepal");
     expect(payload.project.openIssueCount).toBe(2);
     expect(payload.project.memberCount).toBe(1);
   });
@@ -192,7 +192,7 @@ describe("GET /v1/project/issues/{number}", () => {
       title: "Answer everything",
       body: "The body",
       labels: [{ name: "help wanted", color: "008672" }],
-      authorLogin: "voidash",
+      authorLogin: "octocat",
       commentsCount: 3,
     });
 
@@ -205,7 +205,7 @@ describe("GET /v1/project/issues/{number}", () => {
     expect(payload.issue.number).toBe(42);
     expect(payload.issue.title).toBe("Answer everything");
     expect(payload.issue.labels).toEqual([{ name: "help wanted", color: "008672" }]);
-    expect(payload.issue.authorLogin).toBe("voidash");
+    expect(payload.issue.authorLogin).toBe("octocat");
     expect(payload.issue.commentsCount).toBe(3);
   });
 

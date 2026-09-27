@@ -16,10 +16,10 @@ function githubIssue(overrides: Record<string, unknown> = {}): Record<string, un
     state: "open",
     labels: [{ name: "good first issue", color: "7057ff" }],
     user: {
-      login: "voidash",
+      login: "octocat",
       avatar_url: "https://avatars.githubusercontent.com/u/23181294?v=4",
     },
-    html_url: "https://github.com/voidash/gov-portal/issues/1",
+    html_url: "https://github.com/SDOC-Team/devnepal/issues/1",
     comments: 2,
     created_at: "2026-09-01T00:00:00Z",
     updated_at: "2026-09-02T00:00:00Z",
@@ -49,7 +49,7 @@ describe("syncProjectIssues", () => {
   });
 
   it("upserts issues, skips pull requests, and records the sync time", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     const fetchImpl = fetchMock([
       [
         githubIssue({ number: 1 }),
@@ -71,7 +71,7 @@ describe("syncProjectIssues", () => {
   });
 
   it("replaces sample fixtures with real issues", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     await createIssue({ projectId: project.id, number: 101, source: "sample" });
 
     await syncProjectIssues({
@@ -84,7 +84,7 @@ describe("syncProjectIssues", () => {
   });
 
   it("is idempotent across repeated runs", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     const batch = [githubIssue({ number: 1, title: "First" })];
 
     await syncProjectIssues({ fetchImpl: fetchMock([batch]) as unknown as typeof fetch });
@@ -100,7 +100,7 @@ describe("syncProjectIssues", () => {
   });
 
   it("paginates through GitHub results", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     const firstPage = Array.from({ length: 100 }, (_, index) => githubIssue({ number: index + 1 }));
     const secondPage = [githubIssue({ number: 101 })];
 
@@ -113,7 +113,7 @@ describe("syncProjectIssues", () => {
   });
 
   it("fails loudly when GitHub rejects the request", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const fetchImpl = vi.fn(async () => new Response("rate limited", { status: 403 }));
 
     await expect(
