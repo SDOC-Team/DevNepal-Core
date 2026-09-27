@@ -18,10 +18,15 @@ ones.
 
 ## Run it
 
-Setup, environment variables, GitHub sign-in and `bun run dev:session` are
-described in the [README](../README.md). The setup creates no member accounts:
-sign in with GitHub to create one, then use `bun run dev:session` to test the
-signed-in screens.
+Setup, environment variables and GitHub sign-in are described in the
+[README](../README.md). The GitHub OAuth App credentials are required: the app
+does not start without them.
+
+The setup creates no member accounts, so sign in with GitHub once to create
+yours. After that, `bun run dev:session <your-github-username>` prints a session
+cookie for that member, so you can test the profile editor and admin screens
+without going through GitHub sign-in each time. It does not replace the OAuth
+credentials.
 
 ## Routes
 
