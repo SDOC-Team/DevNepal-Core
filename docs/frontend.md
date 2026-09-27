@@ -55,7 +55,7 @@ handler, and request frontend and backend review. Runtime validation remains in
 | Profile validation | `/en/profile`: empty display name, 6 links, `http://` link, unknown skill → inline errors; save persists |
 | Moderation | `/en/admin`: approve a pending member → they appear in `/en/members`; reject → 404 publicly; priority reorders |
 | Non-admin denial | sign in without the id in `ADMIN_GITHUB_IDS` → `/en/admin` shows "Not authorized" |
-| Bilingual | switch `EN | ने`; paths keep the locale and copy changes |
+| Bilingual | switch between English and नेपाली in the language menu; paths keep the locale and copy changes |
 | Sign in / out | header button completes the GitHub flow; sign-out returns to the page |
 
 ## Known gaps (intentional)
