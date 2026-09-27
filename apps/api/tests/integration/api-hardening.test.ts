@@ -50,7 +50,7 @@ describe("API hardening", () => {
     const unauthorizedBody = (await unauthorized.json()) as { error: { code: string } };
     expect(unauthorizedBody.error.code).toBe("unauthorized");
 
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const missing = await issueGet(
       new Request("http://localhost:3000/v1/project/issues/999"),
       issueContext("999"),
@@ -77,7 +77,7 @@ describe("API hardening", () => {
   });
 
   it("returns an empty page when pagination runs past the last result", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     await createIssue({ projectId: project.id, number: 1 });
 
     const response = await issuesGet(

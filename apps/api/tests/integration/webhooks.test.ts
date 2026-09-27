@@ -19,15 +19,15 @@ function sign(body: string): string {
 function issuePayload(action = "opened", overrides: Record<string, unknown> = {}) {
   return {
     action,
-    repository: { full_name: "voidash/gov-portal" },
+    repository: { full_name: "SDOC-Team/devnepal" },
     issue: {
       number: 42,
       title: "Fresh from a webhook",
       body: "Delivered without a manual sync.",
       state: "open",
       labels: [{ name: "good first issue", color: "7057ff" }],
-      user: { login: "voidash", avatar_url: "https://avatars.githubusercontent.com/u/1?v=4" },
-      html_url: "https://github.com/voidash/gov-portal/issues/42",
+      user: { login: "octocat", avatar_url: "https://avatars.githubusercontent.com/u/1?v=4" },
+      html_url: "https://github.com/SDOC-Team/devnepal/issues/42",
       comments: 0,
       created_at: "2026-09-13T10:00:00Z",
       updated_at: "2026-09-13T10:00:00Z",
@@ -70,7 +70,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("stores and applies an issue opened delivery", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
 
     const response = await POST(webhookRequest(issuePayload()));
     expect(response.status).toBe(202);
@@ -87,7 +87,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("rejects a bad signature and records the failure", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
 
     const response = await POST(webhookRequest(issuePayload(), { signature: "sha256=deadbeef" }));
     expect(response.status).toBe(401);
@@ -98,13 +98,13 @@ describe("POST /webhooks/github", () => {
   });
 
   it("rejects a delivery with no signature header", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const response = await POST(webhookRequest(issuePayload(), { signature: null }));
     expect(response.status).toBe(401);
   });
 
   it("treats a repeated delivery id as a duplicate", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
 
     const first = await POST(webhookRequest(issuePayload()));
     const second = await POST(webhookRequest(issuePayload()));
@@ -117,7 +117,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("applies closed and edited updates to the stored issue", async () => {
-    const project = await createProject({ fullName: "voidash/gov-portal" });
+    const project = await createProject({ fullName: "SDOC-Team/devnepal" });
     await POST(webhookRequest(issuePayload()));
 
     await POST(
@@ -143,7 +143,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("ignores deliveries for repositories that are not the project", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const payload = issuePayload();
     payload.repository.full_name = "someone/else";
 
@@ -154,7 +154,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("ignores event types it does not process", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const response = await POST(webhookRequest({ action: "opened" }, { event: "pull_request" }));
     expect(response.status).toBe(202);
     const body = (await response.json()) as { status: string };
@@ -162,7 +162,7 @@ describe("POST /webhooks/github", () => {
   });
 
   it("acknowledges ping deliveries", async () => {
-    await createProject({ fullName: "voidash/gov-portal" });
+    await createProject({ fullName: "SDOC-Team/devnepal" });
     const response = await POST(
       webhookRequest({ zen: "Keep it logically awesome." }, { event: "ping" }),
     );

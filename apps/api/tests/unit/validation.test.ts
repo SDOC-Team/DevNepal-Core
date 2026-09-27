@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 
 describe("displayNameSchema", () => {
   it("accepts a normal name and trims whitespace", () => {
-    expect(displayNameSchema.parse("  Ashish Thapa  ")).toBe("Ashish Thapa");
+    expect(displayNameSchema.parse("  Example Member  ")).toBe("Example Member");
   });
 
   it("rejects empty and oversized names", () => {
