@@ -25,6 +25,9 @@ const en = {
     signIn: "Sign in with GitHub",
     signOut: "Sign out",
     greeting: "Signed in as",
+    retryAccount: "Retry account",
+    accountUnavailable: "Your account could not be loaded right now.",
+    signInFailed: "Could not start GitHub sign-in. Please try again.",
   },
   welcome: {
     kicker: "Onboarding",
@@ -371,6 +374,9 @@ const ne: Dictionary = {
     signIn: "GitHub बाट साइन इन",
     signOut: "साइन आउट",
     greeting: "साइन इन:",
+    retryAccount: "खाता फेरि जाँच्नुहोस्",
+    accountUnavailable: "तपाईंको खाता अहिले लोड गर्न सकिएन।",
+    signInFailed: "GitHub साइन इन सुरु गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।",
   },
   welcome: {
     kicker: "स्वागत",

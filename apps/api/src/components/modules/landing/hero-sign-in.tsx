@@ -1,14 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useId, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useActor } from "@/hooks";
 import { signInWithGitHub } from "@/lib/auth-client";
-import type { Locale } from "@/lib/i18n";
+import { getDictionary, type Locale, localePath } from "@/lib/i18n";
 
 /** Hero call to action. Client-side because sign-in starts an OAuth redirect. */
-export function HeroSignIn({ label, locale }: { label: string; locale: Locale }) {
+export function HeroSignIn({
+  label,
+  profileLabel,
+  retryLabel,
+  locale,
+}: {
+  label: string;
+  profileLabel: string;
+  retryLabel: string;
+  locale: Locale;
+}) {
+  const { actor, isLoading, isSignedOut, refresh } = useActor();
   const [busy, setBusy] = useState(false);
+  const reasonId = useId();
+  const dict = getDictionary(locale);
+
+  if (isLoading) {
+    return <span className="h-10 w-40 animate-pulse rounded-md bg-muted" aria-hidden="true" />;
+  }
+
+  // Retry only when there is no account data to show. SWR keeps the last
+  // data when a refetch fails, and that account is still signed in.
+  if (actor === null && !isSignedOut) {
+    return (
+      <>
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={() => void refresh()}
+          aria-describedby={reasonId}
+        >
+          {retryLabel}
+        </Button>
+        <span id={reasonId} className="sr-only">
+          {dict.session.accountUnavailable}
+        </span>
+      </>
+    );
+  }
+
+  if (actor !== null) {
+    return (
+      <Button
+        size="lg"
+        nativeButton={false}
+        render={<Link href={localePath(locale, "/profile")} />}
+      >
+        {profileLabel}
+      </Button>
+    );
+  }
 
   return (
     <Button
@@ -16,7 +68,11 @@ export function HeroSignIn({ label, locale }: { label: string; locale: Locale })
       disabled={busy}
       onClick={() => {
         setBusy(true);
-        signInWithGitHub(`/${locale}/welcome`).catch(() => setBusy(false));
+        signInWithGitHub(`/${locale}/welcome`).catch((error: unknown) => {
+          console.error("Failed to start GitHub sign-in", error);
+          toast.error(dict.session.signInFailed);
+          setBusy(false);
+        });
       }}
     >
       <svg

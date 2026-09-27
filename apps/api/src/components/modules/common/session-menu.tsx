@@ -3,7 +3,8 @@
 import type { Profile } from "@gov-portal/api-client";
 import { GithubLogoIcon, ShieldCheckIcon, SignOutIcon, UserIcon } from "@phosphor-icons/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useActor } from "@/hooks";
 import { signInWithGitHub, signOut } from "@/lib/auth-client";
-import type { Locale } from "@/lib/i18n";
+import { getDictionary, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,6 +41,7 @@ export function SessionMenu({
   greetingLabel,
   profileLabel,
   adminLabel,
+  retryLabel,
 }: {
   locale: Locale;
   signInLabel: string;
@@ -48,17 +50,43 @@ export function SessionMenu({
   greetingLabel: string;
   profileLabel: string;
   adminLabel: string;
+  retryLabel: string;
 }) {
-  const { actor, isLoading } = useActor();
+  const { actor, isLoading, isSignedOut, refresh } = useActor();
   const [busy, setBusy] = useState(false);
+  const reasonId = useId();
+  const dict = getDictionary(locale);
 
   if (isLoading) {
     return null;
   }
 
+  // Retry only when there is no account data to show. SWR keeps the last
+  // data when a refetch fails, and that account is still signed in.
+  if (actor === null && !isSignedOut) {
+    return (
+      <>
+        <Button variant="outline" onClick={() => void refresh()} aria-describedby={reasonId}>
+          {retryLabel}
+        </Button>
+        <span id={reasonId} className="sr-only">
+          {dict.session.accountUnavailable}
+        </span>
+      </>
+    );
+  }
+
   if (actor === null) {
     return (
-      <Button size="default" onClick={() => void signInWithGitHub(`/${locale}/welcome`)}>
+      <Button
+        size="default"
+        onClick={() => {
+          signInWithGitHub(`/${locale}/welcome`).catch((signInError: unknown) => {
+            console.error("Failed to start GitHub sign-in", signInError);
+            toast.error(dict.session.signInFailed);
+          });
+        }}
+      >
         <GithubLogoIcon data-icon="inline-start" />
         {signInLabel}
       </Button>
