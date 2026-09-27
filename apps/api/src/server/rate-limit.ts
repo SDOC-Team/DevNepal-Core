@@ -28,7 +28,7 @@ type Entry = {
   resetAt: number;
 };
 
-const MAX_KEYS_PER_BUCKET = 5_000;
+export const MAX_KEYS_PER_BUCKET = 5_000;
 
 const buckets = new Map<string, Map<string, Entry>>();
 
@@ -47,6 +47,16 @@ export function rateLimit(bucketName: string, key: string, rule: RateLimitRule):
         if (existing.resetAt <= now) {
           bucket.delete(existingKey);
         }
+      }
+      // Still full: evict the oldest key (Maps iterate in insertion order) so
+      // memory stays bounded. ponytail: an evicted client gets a fresh window;
+      // a shared store with LRU eviction removes that if it ever matters.
+      while (bucket.size >= MAX_KEYS_PER_BUCKET) {
+        const oldest = bucket.keys().next().value;
+        if (oldest === undefined) {
+          break;
+        }
+        bucket.delete(oldest);
       }
     }
     bucket.set(key, { count: 1, resetAt: now + rule.windowMs });

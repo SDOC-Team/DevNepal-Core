@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { clientIp, RATE_LIMITS, rateLimit, resetRateLimits } from "@/server/rate-limit";
+import {
+  clientIp,
+  MAX_KEYS_PER_BUCKET,
+  RATE_LIMITS,
+  rateLimit,
+  resetRateLimits,
+} from "@/server/rate-limit";
 
 const rule = { limit: 3, windowMs: 60_000 };
 
@@ -30,6 +36,19 @@ describe("rateLimit", () => {
     expect(rateLimit("short", "ip", short).allowed).toBe(false);
     await new Promise((resolve) => setTimeout(resolve, 40));
     expect(rateLimit("short", "ip", short).allowed).toBe(true);
+  });
+
+  it("evicts the oldest key once a bucket holds the maximum number of keys", () => {
+    const once = { limit: 1, windowMs: 60_000 };
+    expect(rateLimit("full", "oldest", once).allowed).toBe(true);
+    expect(rateLimit("full", "oldest", once).allowed).toBe(false);
+    for (let i = 1; i < MAX_KEYS_PER_BUCKET; i++) {
+      rateLimit("full", `key-${i}`, once);
+    }
+
+    expect(rateLimit("full", "newcomer", once).allowed).toBe(true);
+    // "oldest" was evicted to make room, so it starts a fresh window.
+    expect(rateLimit("full", "oldest", once).allowed).toBe(true);
   });
 
   it("reports the remaining allowance", () => {
