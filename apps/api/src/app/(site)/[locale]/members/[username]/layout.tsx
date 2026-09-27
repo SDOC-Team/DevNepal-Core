@@ -14,13 +14,11 @@ export async function generateMetadata({
     openGraph: {
       title: `${title} · Dev Nepal`,
       description,
-      images: [`https://github.com/${username}.png`],
     },
     twitter: {
       card: "summary",
       title: `${title} · Dev Nepal`,
       description,
-      images: [`https://github.com/${username}.png`],
     },
   };
 }

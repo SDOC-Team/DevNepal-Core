@@ -148,7 +148,6 @@ export function MemberCard({
   className?: string;
 }) {
   const profileHref = localePath(locale, `/members/${member.githubUsername}`);
-  const avatarSrc = member.avatarUrl ?? `https://github.com/${member.githubUsername}.png`;
   const skills = useMemo(
     () => member.skills.map((skill) => dict.members.skillNames[skill]),
     [member.skills, dict],
@@ -166,11 +165,13 @@ export function MemberCard({
         <div className="flex items-center gap-3">
           <Avatar size="xl">
             {/* A late image fades in; Base UI skips the fade for one already cached. */}
-            <AvatarImage
-              src={avatarSrc}
-              alt=""
-              className="transition-opacity duration-200 ease-out data-starting-style:opacity-0"
-            />
+            {member.avatarUrl !== null ? (
+              <AvatarImage
+                src={member.avatarUrl}
+                alt=""
+                className="transition-opacity duration-200 ease-out data-starting-style:opacity-0"
+              />
+            ) : null}
             <AvatarFallback>{initials(member.displayName)}</AvatarFallback>
             <AvatarBadge className="bg-background text-primary ring-0">
               <SealCheckIcon weight="fill" aria-hidden />

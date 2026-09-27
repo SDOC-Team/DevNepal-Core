@@ -214,13 +214,9 @@ export default function MembersPage() {
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="size-10">
-                              <AvatarImage
-                                src={
-                                  member.avatarUrl ??
-                                  `https://github.com/${member.githubUsername}.png`
-                                }
-                                alt={member.displayName}
-                              />
+                              {member.avatarUrl !== null ? (
+                                <AvatarImage src={member.avatarUrl} alt={member.displayName} />
+                              ) : null}
                               <AvatarFallback>
                                 {member.displayName.slice(0, 2).toUpperCase()}
                               </AvatarFallback>
