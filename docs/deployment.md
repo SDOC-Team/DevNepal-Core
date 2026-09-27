@@ -17,8 +17,10 @@ read at runtime from the process environment.
 
 1. **Postgres 17** reachable from the app. Set `DATABASE_URL`.
 2. **Migrations run before the app starts.** With Compose, the `api` service
-   waits for the one-shot `migrate` service to finish successfully. Outside
-   Compose, run `bun run db:migrate` against the target database first. The app
+   waits for the one-shot `migrate` service, which runs the same image, to
+   finish successfully. Outside Compose, run `node scripts/migrate.js` in the
+   image, or `bun run db:migrate` from a checkout, against the target database
+   first. The app
    process itself never migrates, so a crash-looping app cannot half-migrate a
    database.
 3. **`AUTH_SECRET`** ≥ 32 characters, generated fresh per environment
@@ -48,7 +50,7 @@ read at runtime from the process environment.
 | Problem | Why it happens | Fix (already in repo unless noted) |
 |---|---|---|
 | UI unstyled, no emblem/fonts in the image | Next standalone does not copy `public/` or `.next/static` | Dockerfile copies both explicitly |
-| Migrations unavailable in the runtime image | `drizzle-kit` is a dev dependency and drizzle-orm is bundled into the build | `migrate` build target + `docker compose run --rm migrate` |
+| Migrations unavailable in the runtime image | `drizzle-kit` is a dev dependency and drizzle-orm is bundled into the build | The migration, project-init and GitHub-sync scripts are bundled into `scripts/` in the image and run with `node`; the SQL is in `drizzle/` |
 | App listens only on localhost | Standalone defaults bind `HOSTNAME` | `HOSTNAME=0.0.0.0` in the image |
 | Browser PATCH rejected with 403 after deployment | Origin guard must trust the proxy-resolved own origin | Request-origin + `x-forwarded-*` support in `assertSameOrigin` |
 | Everyone shares one rate-limit bucket behind a tunnel | Proxy IPs hide the client | `cf-connecting-ip` → `x-forwarded-for` → `x-real-ip` order in `clientIp` |

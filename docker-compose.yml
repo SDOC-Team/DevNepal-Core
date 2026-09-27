@@ -19,6 +19,7 @@ services:
       retries: 10
 
   api:
+    image: devnepal:local
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -36,16 +37,20 @@ services:
       migrate:
         condition: service_completed_successfully
 
-  # Gate API startup on a successful schema migration. This is safe to rerun:
-  # Drizzle records applied migrations in the database. The image also carries
-  # the repository scripts, so it runs one-off tasks too:
-  #   docker compose run --rm migrate bun run db:init
+  # Gate API startup on a successful schema migration, using the same image.
+  # This is safe to rerun: Drizzle records applied migrations in the database.
+  # The image also carries the project-init and GitHub-sync scripts:
+  #   docker compose run --rm migrate node scripts/init-project.js
+  #   docker compose run --rm migrate node scripts/sync-github.js
   migrate:
+    image: devnepal:local
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      target: migrate
+    command: ["node", "scripts/migrate.js"]
     restart: "no"
+    env_file:
+      - apps/api/.env.local
     environment:
       DATABASE_URL: postgres://refined:refined@db:5432/refined
     depends_on:
