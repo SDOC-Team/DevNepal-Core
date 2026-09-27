@@ -1,6 +1,6 @@
-export const API_BASE = "";
+const API_BASE = "";
 
-export async function fetchCsrfToken(): Promise<string> {
+async function fetchCsrfToken(): Promise<string> {
   const response = await fetch(`${API_BASE}/api/auth/csrf`, { credentials: "include" });
   if (!response.ok) {
     throw new Error(`Could not reach the authentication service (${response.status})`);

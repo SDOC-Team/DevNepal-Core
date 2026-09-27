@@ -152,7 +152,7 @@ export async function listDirectoryMembers(): Promise<Member[]> {
   return repo.listDirectory();
 }
 
-export function assertAdmin(actor: Member): void {
+function assertAdmin(actor: Member): void {
   if (!isAdminGithubId(actor.githubId)) {
     throw new ForbiddenError("Admin access required");
   }

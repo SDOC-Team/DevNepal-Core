@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { isAdminGithubId } from "@/config";
 import type { Member } from "@/db/schema";
 
 import { UnauthorizedError } from "./errors";
@@ -26,8 +25,4 @@ export async function requireActor(): Promise<Member> {
     throw new UnauthorizedError();
   }
   return actor;
-}
-
-export function isAdminActor(actor: Member): boolean {
-  return isAdminGithubId(actor.githubId);
 }

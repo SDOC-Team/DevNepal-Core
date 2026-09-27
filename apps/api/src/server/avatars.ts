@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { getFileStorage, isAvatarKey } from "./storage";
+import { getFileStorage } from "./storage";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_SIZE = 400;
@@ -68,18 +68,5 @@ export async function storeGithubAvatar(
       }`,
     );
     return null;
-  }
-}
-
-export async function deleteAvatarIfStored(key: string | null): Promise<void> {
-  if (key === null || !isAvatarKey(key)) {
-    return;
-  }
-  try {
-    await getFileStorage().delete(key);
-  } catch (error) {
-    console.warn(
-      `Avatar cleanup failed for key ${key}: ${error instanceof Error ? error.message : String(error)}`,
-    );
   }
 }

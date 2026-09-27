@@ -87,14 +87,3 @@ export async function listIssueLabels(): Promise<repo.LabelFacet[]> {
   const project = await requireActiveProject();
   return repo.listLabelFacets(project.id);
 }
-
-export async function getProjectOverviewOrNull(): Promise<ProjectDto | null> {
-  try {
-    return await getProjectOverview();
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return null;
-    }
-    throw error;
-  }
-}

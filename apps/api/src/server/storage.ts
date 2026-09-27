@@ -10,7 +10,7 @@ export function isAvatarKey(key: string): boolean {
   return AVATAR_KEY_PATTERN.test(key);
 }
 
-export function contentTypeForAvatarKey(key: string): string {
+function contentTypeForAvatarKey(key: string): string {
   if (key.endsWith(".png")) {
     return "image/png";
   }
