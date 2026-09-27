@@ -59,7 +59,9 @@ export function SessionMenu({
     return null;
   }
 
-  if (error !== undefined || (actor === null && !isSignedOut)) {
+  // Retry only when there is no account data to show. SWR keeps the last
+  // data when a refetch fails, and that account is still signed in.
+  if (actor === null && !isSignedOut) {
     return (
       <Button variant="outline" onClick={() => void refresh()} title={error?.message}>
         {retryLabel}

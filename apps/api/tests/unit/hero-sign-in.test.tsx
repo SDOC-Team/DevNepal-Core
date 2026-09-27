@@ -64,6 +64,23 @@ describe("homepage authentication action", () => {
     expect(html).not.toContain("Sign in with GitHub");
   });
 
+  it("keeps the profile link when a refresh fails after the account loaded", () => {
+    // SWR keeps the last data and also sets `error` when a refetch fails.
+    mockedUseActor.mockReturnValue({
+      actor: { member: { displayName: "Member" }, isAdmin: false } as ReturnType<
+        typeof useActor
+      >["actor"],
+      isLoading: false,
+      isSignedOut: false,
+      error: new Error("Profile unavailable"),
+      refresh: vi.fn(),
+    });
+
+    const html = renderToStaticMarkup(<HeroSignIn {...props} />);
+    expect(html).toContain("My profile");
+    expect(html).not.toContain("Retry account");
+  });
+
   it("does not offer sign-in when account state is unresolved", () => {
     mockedUseActor.mockReturnValue({
       actor: null,

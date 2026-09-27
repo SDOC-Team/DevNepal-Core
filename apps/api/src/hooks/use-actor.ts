@@ -20,7 +20,8 @@ export function useActor() {
   );
   const signedOut = error instanceof ApiError && error.status === 401;
   return {
-    actor: data ?? null,
+    // After a 401 the session is gone, even if SWR still holds the old data.
+    actor: signedOut ? null : (data ?? null),
     isLoading,
     isSignedOut: signedOut,
     error: signedOut ? undefined : (error as Error | undefined),

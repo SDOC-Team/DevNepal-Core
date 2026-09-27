@@ -28,7 +28,9 @@ export function HeroSignIn({
     return <span className="h-10 w-40 animate-pulse rounded-md bg-muted" aria-hidden="true" />;
   }
 
-  if (error !== undefined || (actor === null && !isSignedOut)) {
+  // Retry only when there is no account data to show. SWR keeps the last
+  // data when a refetch fails, and that account is still signed in.
+  if (actor === null && !isSignedOut) {
     return (
       <Button size="lg" variant="outline" onClick={() => void refresh()} title={error?.message}>
         {retryLabel}
