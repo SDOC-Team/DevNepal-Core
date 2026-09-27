@@ -16,14 +16,11 @@ read at runtime from the process environment.
 ## Before you deploy — checklist
 
 1. **Postgres 17** reachable from the app. Set `DATABASE_URL`.
-2. **Apply migrations before starting the new image**, against the target
-   database. Either from a checkout (`bun run db:migrate`) or with the shipped
-   migration runner:
-   ```sh
-   docker compose run --rm migrate
-   ```
-   The app never migrates on boot by design; a crash-looping deploy must not
-   half-migrate a database.
+2. **Migrations run before the app starts.** With Compose, the `api` service
+   waits for the one-shot `migrate` service to finish successfully. Outside
+   Compose, run `bun run db:migrate` against the target database first. The app
+   process itself never migrates, so a crash-looping app cannot half-migrate a
+   database.
 3. **`AUTH_SECRET`** ≥ 32 characters, generated fresh per environment
    (`openssl rand -base64 48`). Changing it signs everyone out.
 4. **GitHub OAuth**: add the production callback URL to the OAuth App /
@@ -60,24 +57,6 @@ read at runtime from the process environment.
 | `/health` reports 503 in a healthy container | It checks the database | Correct: the check is a real dependency probe; investigate the DB |
 | Rate limits reset on restart | In-memory counters, single instance | Accept for one replica; move to a shared store before scaling out |
 | Webhook deliveries fail silently | Ephemeral hostnames (quick tunnels) change | Use the stable production hostname; `sync:github` reconciles gaps |
-
-## Deploy on k2 (current host)
-
-k2 is a macOS machine with Caddy, `cloudflared`, and launchd; the old Django
-site currently owns `devnepal.zapper.cloud`. Two viable modes:
-
-- **Docker (recommended for parity)**: install colima or Docker Desktop on k2,
-  then `docker compose up -d db api` with a production `.env.local`. The compose
-  file already has restart policies; put the database port behind the host
-  firewall or remove its `ports:` mapping for production.
-- **launchd (no Docker)**: run Postgres (brew) plus the standalone server via a
-  launchd unit that sources an env file and runs `node apps/api/server.js`.
-  This mirrors the old deployment but loses image parity.
-
-**Cutover without downtime**: deploy the new stack on a separate hostname
-(e.g. `next.devnepal.zapper.cloud` → Caddy → `127.0.0.1:3000`), validate it,
-then switch the `devnepal.zapper.cloud` tunnel ingress to the new upstream and
-keep the old service running until the DNS/TLS is confirmed.
 
 ## Backups
 
