@@ -13,7 +13,7 @@ backend are separate code boundaries, not separate deployments.
 |---|---|
 | Runtime | Node 24 LTS (Bun for package management and scripts) |
 | Framework | Next.js 16 App Router — pages + route handlers in one app |
-| UI | React 19, DevNepal design system (Primer CSS vendored + tokens), react-markdown |
+| UI | React 19, Tailwind CSS 4, shadcn/ui on Base UI, SWR, react-markdown |
 | Database | PostgreSQL 17 |
 | ORM | Drizzle ORM + drizzle-kit (plain-SQL migrations) |
 | Auth | Auth.js v5 (`next-auth@5` beta) — GitHub OAuth, JWT sessions, no adapter |
@@ -26,7 +26,7 @@ backend are separate code boundaries, not separate deployments.
 
 ```
 apps/api/
-  src/app/(site)/[locale]/   UI pages (en/ne): home, project, issues, members, profile, admin, about
+  src/app/(site)/[locale]/   UI pages (en/ne): home, project, issues, members, profile, welcome, admin, about
   src/app/v1/                versioned REST route handlers
   src/app/<legacy routes>    temporary compatibility aliases to `/v1`
   src/components/            site chrome and UI primitives
@@ -34,14 +34,14 @@ apps/api/
   src/server/                services, repositories, authorization seam, storage, errors
   src/db/                    Drizzle schema + client
   drizzle/                   generated SQL migrations (committed)
-  src/scripts/               seed, GitHub sync, dev-session tools
+  src/scripts/               project init, GitHub sync, dev-session tools
   tests/                     unit + integration tests, test DB bootstrap
 packages/api-contract/       canonical OpenAPI description
 packages/api-client/         generated API types + browser HTTP client
 packages/shared/src/         runtime Zod validation + internal service DTOs
 docs/frontend.md             frontend onboarding and verification matrix
 scripts/setup.ts             one-command local bootstrap
-compose.yaml                 PostgreSQL for development (and a full api profile)
+compose.yaml                 PostgreSQL for development, plus api and migrate services
 .github/workflows/ci.yml     Lint, typecheck, tests, build on every PR
 ```
 
@@ -118,30 +118,12 @@ bun run setup
 5. verifies `SDOC-Team/devnepal` through the GitHub API, initializes the project
    row, and syncs its real issues
 
-Nothing else is required — the design assets, translations, fonts, and vendored
-styles all ship with the repository.
+Translations and design assets ship with the repository.
 
-### 2. Run
+### 2. Create a GitHub OAuth App
 
-```sh
-bun run dev          # UI + API on one port → http://localhost:3000/en
-```
-
-### 3. Verify the scaffold
-
-| Check | Expected |
-|---|---|
-| `curl localhost:3000/health` | `{"status":"ok"}` |
-| http://localhost:3000/en | home page with the state strip, hero, and project card |
-| http://localhost:3000/ne | the same page in Nepali |
-| http://localhost:3000/en/issues | 8 seeded issues; label filter and search work |
-| http://localhost:3000/en/members | 3 approved members; pending/rejected/hidden are absent |
-| `curl 'localhost:3000/v1/project/issues?perPage=2'` | JSON with `"total": 8` |
-| `bun run test` | the full Vitest suite passes against `refined_test` |
-
-### 4. Optional: sign in with GitHub
-
-Sign-in is required only for the profile editor and admin screens.
+The app checks its configuration at startup and refuses to start without
+GitHub OAuth credentials, so this step is required even for the public pages.
 
 1. Create an OAuth App at <https://github.com/settings/developers> → **New OAuth App**
    - Homepage URL: `http://localhost:3000`
@@ -151,24 +133,42 @@ Sign-in is required only for the profile editor and admin screens.
    - `AUTH_GITHUB_SECRET` — generate a client secret and paste it
 3. To get the admin queue, add your numeric GitHub ID to `ADMIN_GITHUB_IDS`
    (`https://api.github.com/users/<login>` → `id`); comma-separate several admins.
-4. Restart the dev server.
 
 Never commit these values; share team development credentials out-of-band. The
 provider requests **`read:user` only** — email is never requested or stored.
 
-### 5. Optional: test signed-in screens without GitHub
-
-`bun run dev:session <githubUsername>` mints a real session cookie for a seeded
-member so the profile editor and admin screens can be tested offline:
+### 3. Run
 
 ```sh
-bun run dev:session nisha-tamang
+bun run dev          # UI + API on one port → http://localhost:3000/en
+```
+
+### 4. Verify the scaffold
+
+| Check | Expected |
+|---|---|
+| `curl localhost:3000/health` | `{"status":"ok"}` |
+| http://localhost:3000/en | home page with the state strip, hero, and project card |
+| http://localhost:3000/ne | the same page in Nepali |
+| http://localhost:3000/en/issues | the repository's open issues; label filter and search work |
+| http://localhost:3000/en/members | approved members only (empty until someone signs in and is approved) |
+| `curl 'localhost:3000/v1/project/issues?perPage=2'` | JSON whose `total` matches the repository's open issues |
+| `bun run test` | the full Vitest suite passes against `refined_test` |
+
+### 5. Optional: test signed-in screens without repeating OAuth
+
+`bun run dev:session <githubUsername>` mints a real session cookie for an
+existing member (sign in once with GitHub to create one), so the profile editor
+and admin screens can be tested without repeating the OAuth flow:
+
+```sh
+bun run dev:session <your-github-username>
 ```
 
 The command prints the `authjs.session-token` value and the member's GitHub ID.
 Add the cookie in DevTools → Application → Cookies → `http://localhost:3000`,
 and put the printed ID in `ADMIN_GITHUB_IDS` (then restart) for admin access.
-See [`docs/frontend.md`](docs/frontend.md) for the full verification matrix.
+See [`docs/frontend.md`](docs/frontend.md) for the verification matrix.
 
 ### 6. Refresh GitHub issues
 
@@ -210,10 +210,10 @@ until then. Contribution indexing is a later phase.
 |---|---|---|
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `AUTH_SECRET` | yes | Auth.js session encryption, ≥ 32 chars |
-| `AUTH_GITHUB_ID` | for sign-in | GitHub OAuth App client ID |
-| `AUTH_GITHUB_SECRET` | for sign-in | GitHub OAuth App client secret |
+| `AUTH_GITHUB_ID` | yes | GitHub OAuth App client ID; the app does not start without it |
+| `AUTH_GITHUB_SECRET` | yes | GitHub OAuth App client secret; the app does not start without it |
 | `ADMIN_GITHUB_IDS` | for admin | Comma-separated admin GitHub numeric IDs (may be empty) |
-| `GITHUB_PROJECT_REPOSITORY` | yes | Public GitHub repository to index; defaults to `SDOC-Team/devnepal` |
+| `GITHUB_PROJECT_REPOSITORY` | optional | Public GitHub repository that `db:init` indexes; defaults to `SDOC-Team/devnepal` |
 | `STORAGE_DIR` | yes | Directory for stored avatars (persistent volume) |
 | `WEB_ORIGIN` | external clients | CORS allowlist for non-browser clients (mobile); the UI is same-origin |
 | `GITHUB_TOKEN` | optional | Raises the GitHub API rate limit for `sync:github` |
@@ -295,18 +295,14 @@ Server-rendered pages under `/en` and `/ne` (English default; `/` redirects to
 sanitized Markdown, member directory, member profiles, own profile editor,
 admin moderation, and a how-to-contribute page.
 
-Primary navigation is: Open issues · Members · How to contribute — the project
-itself is reached from the home hero and the project card. When a member is
-signed in, the header shows **My profile**, and **Admin** appears for accounts
-listed in `ADMIN_GITHUB_IDS`.
+Primary navigation is: How to contribute · Projects · Members · About. Open
+issues are reached from the project page and the home page. When a member is
+signed in, the header's account menu offers **My profile**, plus **Admin** for
+accounts listed in `ADMIN_GITHUB_IDS`.
 
-The visual language is ported from the DevNepal frontend
-([`voidash/DevNepal`, branch `demo/minimal-validated-flow`](https://github.com/voidash/DevNepal/tree/demo/minimal-validated-flow)):
-the government state strip with the emblem, the black condensed headings, the
-blue action ramp, and the component styles in
-`apps/api/public/assets/devnepal/` (provenance and licences in that folder's
-README). Primer CSS is vendored underneath as the base layer. Translations live
-in `apps/api/src/lib/i18n.ts`.
+Styling is Tailwind CSS with the design tokens defined in
+`apps/api/src/app/tailwind.css`; UI primitives live in
+`apps/api/src/components/ui`. Translations live in `apps/api/src/lib/i18n.ts`.
 
 ## Security invariants (tested)
 
@@ -348,24 +344,5 @@ with mocked HTTP, and Auth.js CORS handling. Override the database with
 
 ## Deployment
 
-See [`docs/deployment.md`](docs/deployment.md) for the full checklist, known
-problems and fixes, k2 options, backups, and the cutover plan.
-
-```sh
-docker build -f apps/api/Dockerfile -t gov-portal .
-```
-
-The image runs the Next.js standalone server as a non-root user (`node`), serves
-the UI and the REST API on port 3000, and expects the environment variables
-above. Avatars live in `/app/storage` — mount a persistent volume there. Run
-migrations against the target database before starting the new image
-(`bun run db:migrate` from a checkout with the production `DATABASE_URL`).
-
-## Notes
-
-- `/v1` is the canonical product API. The unversioned aliases are deprecated
-  migration aids and can be removed after all known consumers move to `/v1`.
-- Live webhook delivery and contribution indexing are a later phase; issues
-  are reconciled on demand with `bun run sync:github`, and the signed webhook
-  endpoint is ready when delivery is wired.
-- Dark mode: the design tokens ship with light mode only for now.
+See [`docs/deployment.md`](docs/deployment.md) for the checklist, known
+problems and their fixes, and backups.
