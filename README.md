@@ -13,7 +13,7 @@ backend are separate code boundaries, not separate deployments.
 |---|---|
 | Runtime | Node 24 LTS (Bun for package management and scripts) |
 | Framework | Next.js 16 App Router — pages + route handlers in one app |
-| UI | React 19, DevNepal design system (Primer CSS vendored + tokens), react-markdown |
+| UI | React 19, Tailwind CSS 4, shadcn/ui on Base UI, SWR, react-markdown |
 | Database | PostgreSQL 17 |
 | ORM | Drizzle ORM + drizzle-kit (plain-SQL migrations) |
 | Auth | Auth.js v5 (`next-auth@5` beta) — GitHub OAuth, JWT sessions, no adapter |
@@ -34,7 +34,7 @@ apps/api/
   src/server/                services, repositories, authorization seam, storage, errors
   src/db/                    Drizzle schema + client
   drizzle/                   generated SQL migrations (committed)
-  src/scripts/               seed, GitHub sync, dev-session tools
+  src/scripts/               project init, GitHub sync, dev-session tools
   tests/                     unit + integration tests, test DB bootstrap
 packages/api-contract/       canonical OpenAPI description
 packages/api-client/         generated API types + browser HTTP client
@@ -118,8 +118,8 @@ bun run setup
 5. verifies `SDOC-Team/devnepal` through the GitHub API, initializes the project
    row, and syncs its real issues
 
-Nothing else is required — the design assets, translations, fonts, and vendored
-styles all ship with the repository.
+Nothing else is required — translations and design assets ship with the
+repository.
 
 ### 2. Run
 
@@ -134,9 +134,9 @@ bun run dev          # UI + API on one port → http://localhost:3000/en
 | `curl localhost:3000/health` | `{"status":"ok"}` |
 | http://localhost:3000/en | home page with the state strip, hero, and project card |
 | http://localhost:3000/ne | the same page in Nepali |
-| http://localhost:3000/en/issues | 8 seeded issues; label filter and search work |
-| http://localhost:3000/en/members | 3 approved members; pending/rejected/hidden are absent |
-| `curl 'localhost:3000/v1/project/issues?perPage=2'` | JSON with `"total": 8` |
+| http://localhost:3000/en/issues | the repository's open issues; label filter and search work |
+| http://localhost:3000/en/members | approved members only (empty until someone signs in and is approved) |
+| `curl 'localhost:3000/v1/project/issues?perPage=2'` | JSON whose `total` matches the repository's open issues |
 | `bun run test` | the full Vitest suite passes against `refined_test` |
 
 ### 4. Optional: sign in with GitHub
@@ -158,17 +158,18 @@ provider requests **`read:user` only** — email is never requested or stored.
 
 ### 5. Optional: test signed-in screens without GitHub
 
-`bun run dev:session <githubUsername>` mints a real session cookie for a seeded
-member so the profile editor and admin screens can be tested offline:
+`bun run dev:session <githubUsername>` mints a real session cookie for an
+existing member (sign in once with GitHub to create one), so the profile editor
+and admin screens can be tested without repeating the OAuth flow:
 
 ```sh
-bun run dev:session nisha-tamang
+bun run dev:session <your-github-username>
 ```
 
 The command prints the `authjs.session-token` value and the member's GitHub ID.
 Add the cookie in DevTools → Application → Cookies → `http://localhost:3000`,
 and put the printed ID in `ADMIN_GITHUB_IDS` (then restart) for admin access.
-See [`docs/frontend.md`](docs/frontend.md) for the full verification matrix.
+See [`docs/frontend.md`](docs/frontend.md) for the verification matrix.
 
 ### 6. Refresh GitHub issues
 
@@ -300,13 +301,9 @@ itself is reached from the home hero and the project card. When a member is
 signed in, the header shows **My profile**, and **Admin** appears for accounts
 listed in `ADMIN_GITHUB_IDS`.
 
-The visual language is ported from the DevNepal frontend
-([`voidash/DevNepal`, branch `demo/minimal-validated-flow`](https://github.com/voidash/DevNepal/tree/demo/minimal-validated-flow)):
-the government state strip with the emblem, the black condensed headings, the
-blue action ramp, and the component styles in
-`apps/api/public/assets/devnepal/` (provenance and licences in that folder's
-README). Primer CSS is vendored underneath as the base layer. Translations live
-in `apps/api/src/lib/i18n.ts`.
+Styling is Tailwind CSS with the design tokens defined in
+`apps/api/src/app/tailwind.css`; UI primitives live in
+`apps/api/src/components/ui`. Translations live in `apps/api/src/lib/i18n.ts`.
 
 ## Security invariants (tested)
 
@@ -348,24 +345,5 @@ with mocked HTTP, and Auth.js CORS handling. Override the database with
 
 ## Deployment
 
-See [`docs/deployment.md`](docs/deployment.md) for the full checklist, known
-problems and fixes, k2 options, backups, and the cutover plan.
-
-```sh
-docker build -f apps/api/Dockerfile -t gov-portal .
-```
-
-The image runs the Next.js standalone server as a non-root user (`node`), serves
-the UI and the REST API on port 3000, and expects the environment variables
-above. Avatars live in `/app/storage` — mount a persistent volume there. Run
-migrations against the target database before starting the new image
-(`bun run db:migrate` from a checkout with the production `DATABASE_URL`).
-
-## Notes
-
-- `/v1` is the canonical product API. The unversioned aliases are deprecated
-  migration aids and can be removed after all known consumers move to `/v1`.
-- Live webhook delivery and contribution indexing are a later phase; issues
-  are reconciled on demand with `bun run sync:github`, and the signed webhook
-  endpoint is ready when delivery is wired.
-- Dark mode: the design tokens ship with light mode only for now.
+See [`docs/deployment.md`](docs/deployment.md) for the checklist, known
+problems and their fixes, and backups.
