@@ -1,4 +1,4 @@
-# gov-portal
+# devnepal
 
 A public portal for one open-source project: its open GitHub issues, the approved
 member directory, and the profile/moderation flows around it.
