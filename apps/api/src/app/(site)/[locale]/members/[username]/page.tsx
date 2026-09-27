@@ -1,5 +1,6 @@
 "use client";
 
+import { isReleasedUsername } from "@gov-portal/shared";
 import {
   BriefcaseIcon,
   BuildingsIcon,
@@ -9,6 +10,7 @@ import {
   PencilIcon,
   ShareNetworkIcon,
 } from "@phosphor-icons/react";
+
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { useState } from "react";
@@ -174,21 +176,24 @@ export default function MemberDetailPage() {
                 </span>
               ) : null}
             </div>
-            <Button
-              variant="default"
-              size="sm"
-              render={
-                <a
-                  href={`https://github.com/${profile.githubUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <GithubLogoIcon className="size-4" />
-              <span>@{profile.githubUsername}</span>
-            </Button>
+            {/* A released username no longer points at this member's GitHub account. */}
+            {isReleasedUsername(profile.githubUsername) ? null : (
+              <Button
+                variant="default"
+                size="sm"
+                render={
+                  <a
+                    href={`https://github.com/${profile.githubUsername}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  />
+                }
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                <GithubLogoIcon className="size-4" />
+                <span>@{profile.githubUsername}</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
