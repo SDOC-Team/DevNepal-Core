@@ -44,6 +44,8 @@ scripts/setup.ts             one-command local bootstrap
 compose.yaml                 PostgreSQL for development, plus api and migrate services
 .github/workflows/ci.yml     Lint, typecheck, tests, build on every PR
 ```
+- **Project conventions.** Branch names, review policy, contribution guidance,
+  and documentation standards are in [docs/CONVENTIONS.md](./docs/CONVENTIONS.md).
 
 ## Working together (frontend + backend)
 
