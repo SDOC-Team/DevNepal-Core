@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { type Member, members, type NewMember } from "@/db/schema";
@@ -47,8 +47,30 @@ export async function listByStatus(status: Member["status"]): Promise<Member[]> 
 }
 
 export async function insertMember(values: NewMember): Promise<Member | null> {
-  const rows = await db.insert(members).values(values).onConflictDoNothing().returning();
+  const rows = await db
+    .insert(members)
+    .values(values)
+    .onConflictDoNothing({ target: members.githubId })
+    .returning();
   return rows[0] ?? null;
+}
+
+/**
+ * GitHub usernames can be renamed and then claimed by someone else, so a
+ * username stored for one member may now belong to another account. Moves any
+ * other member off `username` to a placeholder. GitHub logins cannot start with
+ * "-", so the placeholder never collides with a real login.
+ */
+export async function releaseUsername(username: string, keepGithubId: number): Promise<void> {
+  await db
+    .update(members)
+    .set({ githubUsername: sql`'-stale-' || ${members.githubId}` })
+    .where(
+      and(
+        sql`lower(${members.githubUsername}) = ${username.toLowerCase()}`,
+        ne(members.githubId, keepGithubId),
+      ),
+    );
 }
 
 export async function updateMemberFields(

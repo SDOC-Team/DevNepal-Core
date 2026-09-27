@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db } from "@/db/client";
+import { findById } from "@/server/members/repository";
 import { ensureMemberFromGithubLogin } from "@/server/members/service";
 
 import { resetDatabase } from "../helpers/db";
@@ -158,5 +159,53 @@ describe("ensureMemberFromGithubLogin", () => {
     const columns = result.rows.map((row) => row.column_name);
     expect(columns.length).toBeGreaterThan(0);
     expect(columns).not.toContain("email");
+  });
+
+  it("gives a reused username to the new account and releases it from the stale one", async () => {
+    const stale = await ensureMemberFromGithubLogin({
+      githubId: 444444,
+      githubUsername: "Reused-Name",
+      displayName: "Original Owner",
+      avatarUrl: null,
+    });
+
+    const newcomer = await ensureMemberFromGithubLogin({
+      githubId: 555555,
+      githubUsername: "reused-name",
+      displayName: "New Owner",
+      avatarUrl: null,
+    });
+
+    expect(newcomer.githubId).toBe(555555);
+    expect(newcomer.githubUsername).toBe("reused-name");
+    const released = await findById(stale.id);
+    expect(released?.githubUsername).toBe("-stale-444444");
+  });
+
+  it("renames onto a username that a stale account still holds", async () => {
+    const renaming = await ensureMemberFromGithubLogin({
+      githubId: 666666,
+      githubUsername: "before-rename",
+      displayName: "Renaming Person",
+      avatarUrl: null,
+    });
+    const stale = await ensureMemberFromGithubLogin({
+      githubId: 777777,
+      githubUsername: "after-rename",
+      displayName: "Stale Holder",
+      avatarUrl: null,
+    });
+
+    const renamed = await ensureMemberFromGithubLogin({
+      githubId: 666666,
+      githubUsername: "after-rename",
+      displayName: "Renaming Person",
+      avatarUrl: null,
+    });
+
+    expect(renamed.id).toBe(renaming.id);
+    expect(renamed.githubUsername).toBe("after-rename");
+    const released = await findById(stale.id);
+    expect(released?.githubUsername).toBe("-stale-777777");
   });
 });

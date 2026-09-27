@@ -37,6 +37,7 @@ export async function ensureMemberFromGithubLogin(identity: GithubIdentity): Pro
   if (existing !== null) {
     const updates: Partial<Omit<NewMember, "id">> = {};
     if (existing.githubUsername !== identity.githubUsername) {
+      await repo.releaseUsername(identity.githubUsername, identity.githubId);
       updates.githubUsername = identity.githubUsername;
     }
     if (existing.avatarPath === null && identity.avatarUrl !== null) {
@@ -60,6 +61,7 @@ export async function ensureMemberFromGithubLogin(identity: GithubIdentity): Pro
       ? await storeGithubAvatar(identity.githubId, identity.avatarUrl)
       : null;
 
+  await repo.releaseUsername(identity.githubUsername, identity.githubId);
   const created = await repo.insertMember({
     githubId: identity.githubId,
     githubUsername: identity.githubUsername,
