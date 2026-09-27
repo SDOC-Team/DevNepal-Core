@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useActor } from "@/hooks";
 import { signInWithGitHub } from "@/lib/auth-client";
-import { type Locale, localePath } from "@/lib/i18n";
+import { getDictionary, type Locale, localePath } from "@/lib/i18n";
 
 /** Hero call to action. Client-side because sign-in starts an OAuth redirect. */
 export function HeroSignIn({
@@ -21,8 +21,10 @@ export function HeroSignIn({
   retryLabel: string;
   locale: Locale;
 }) {
-  const { actor, isLoading, isSignedOut, error, refresh } = useActor();
+  const { actor, isLoading, isSignedOut, refresh } = useActor();
   const [busy, setBusy] = useState(false);
+  const reasonId = useId();
+  const dict = getDictionary(locale);
 
   if (isLoading) {
     return <span className="h-10 w-40 animate-pulse rounded-md bg-muted" aria-hidden="true" />;
@@ -32,9 +34,19 @@ export function HeroSignIn({
   // data when a refetch fails, and that account is still signed in.
   if (actor === null && !isSignedOut) {
     return (
-      <Button size="lg" variant="outline" onClick={() => void refresh()} title={error?.message}>
-        {retryLabel}
-      </Button>
+      <>
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={() => void refresh()}
+          aria-describedby={reasonId}
+        >
+          {retryLabel}
+        </Button>
+        <span id={reasonId} className="sr-only">
+          {dict.session.accountUnavailable}
+        </span>
+      </>
     );
   }
 
@@ -58,7 +70,7 @@ export function HeroSignIn({
         setBusy(true);
         signInWithGitHub(`/${locale}/welcome`).catch((error: unknown) => {
           console.error("Failed to start GitHub sign-in", error);
-          toast.error(error instanceof Error ? error.message : "Could not start GitHub sign-in");
+          toast.error(dict.session.signInFailed);
           setBusy(false);
         });
       }}

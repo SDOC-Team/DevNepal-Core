@@ -62,6 +62,12 @@ describe("homepage authentication action", () => {
     const html = renderToStaticMarkup(<HeroSignIn {...props} />);
     expect(html).toContain("Retry account");
     expect(html).not.toContain("Sign in with GitHub");
+    // The reason is announced with the button, not hidden in a title tooltip.
+    const describedBy = html.match(/aria-describedby="([^"]+)"/)?.[1];
+    expect(describedBy).toBeDefined();
+    expect(html).toContain(`id="${describedBy}"`);
+    expect(html).toContain("Your account could not be loaded right now.");
+    expect(html).not.toContain("Profile unavailable");
   });
 
   it("keeps the profile link when a refresh fails after the account loaded", () => {
