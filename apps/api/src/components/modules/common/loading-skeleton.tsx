@@ -44,24 +44,33 @@ function HeaderBlock() {
   );
 }
 
-/** Card grid — members, projects, step cards. */
+/**
+ * Card grid — members, projects, step cards. Shaped and sized like the member
+ * card (the directory is its main user), so real cards replace it in place.
+ */
 function CardsBlock() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {[0, 1, 2, 3, 4, 5].map((slot) => (
-        <div key={slot} className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3">
-            <div className="skel size-12 rounded-full" />
-            <div className="min-w-0 flex-1">
-              <Line className="w-2/3" />
-              <Line className="mt-2 h-3 w-1/2" />
+        <div key={slot} className="flex flex-col rounded-xl bg-card ring-1 ring-border">
+          <div className="flex flex-col gap-3.5 px-4 pt-4 pb-2.5">
+            <div className="flex items-center gap-3">
+              <div className="skel size-12 rounded-full" />
+              <div className="min-w-0 flex-1">
+                <Line className="h-5 w-2/3" />
+                <Line className="mt-2 h-3.5 w-1/2" />
+              </div>
+            </div>
+            <div className="flex h-5 items-center">
+              <Line className="h-3.5 w-3/5" />
             </div>
           </div>
-          <div className="mt-5 flex gap-2">
-            <div className="skel h-5 w-16 rounded-md" />
-            <div className="skel h-5 w-20 rounded-md" />
+          <div className="flex gap-2 px-4">
+            <div className="skel h-5 w-16 rounded-4xl" />
+            <div className="skel h-5 w-20 rounded-4xl" />
+            <div className="skel h-5 w-14 rounded-4xl" />
           </div>
-          <div className="mt-5 border-t border-border/60 pt-4">
+          <div className="p-4">
             <div className="skel h-8 w-28 rounded-md" />
           </div>
         </div>
