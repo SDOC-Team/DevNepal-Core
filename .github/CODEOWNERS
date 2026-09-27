@@ -7,7 +7,6 @@
 /apps/api/src/app/(site)/   @voidash
 /apps/api/src/components/   @voidash
 /apps/api/src/lib/          @voidash
-/apps/api/src/app/globals.css @voidash
 
 # Backend and the API contract.
 /apps/api/src/app/v1/       @voidash

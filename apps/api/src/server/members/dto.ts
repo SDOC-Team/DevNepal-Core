@@ -2,7 +2,7 @@ import type { AdminMemberDto, PublicMemberDto, SelfMemberDto } from "@gov-portal
 
 import type { Member } from "@/db/schema";
 
-export function avatarUrlFor(member: Member): string | null {
+function avatarUrlFor(member: Member): string | null {
   if (member.avatarPath === null) {
     return null;
   }

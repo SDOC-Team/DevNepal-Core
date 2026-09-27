@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/assets/devnepal/images/emblem-of-nepal-120.png",
+        url: "/official-website-bar/emblem-of-nepal.png",
         type: "image/png",
         sizes: "120x120",
       },
     ],
-    apple: "/assets/devnepal/images/emblem-of-nepal-120.png",
+    apple: "/official-website-bar/emblem-of-nepal.png",
   },
 };
 

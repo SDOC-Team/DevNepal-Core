@@ -3,7 +3,7 @@
  * masthead and footer — so their left and right edges line up exactly.
  * 16 / 32 / 64px.
  */
-export const sectionGutter = "px-4 sm:px-8 lg:px-16";
+const sectionGutter = "px-4 sm:px-8 lg:px-16";
 
 /**
  * Gutter plus the vertical rhythm shared by every landing-page section:
