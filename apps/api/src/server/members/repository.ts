@@ -1,6 +1,7 @@
+import { RELEASED_USERNAME_PREFIX } from "@gov-portal/shared";
 import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 
-import { db } from "@/db/client";
+import { db, type Executor } from "@/db/client";
 import { type Member, members, type NewMember } from "@/db/schema";
 
 export async function findById(id: string): Promise<Member | null> {
@@ -46,8 +47,11 @@ export async function listByStatus(status: Member["status"]): Promise<Member[]> 
     .orderBy(desc(members.priority), sql`${members.createdAt} asc`);
 }
 
-export async function insertMember(values: NewMember): Promise<Member | null> {
-  const rows = await db
+export async function insertMember(
+  values: NewMember,
+  executor: Executor = db,
+): Promise<Member | null> {
+  const rows = await executor
     .insert(members)
     .values(values)
     .onConflictDoNothing({ target: members.githubId })
@@ -58,13 +62,16 @@ export async function insertMember(values: NewMember): Promise<Member | null> {
 /**
  * GitHub usernames can be renamed and then claimed by someone else, so a
  * username stored for one member may now belong to another account. Moves any
- * other member off `username` to a placeholder. GitHub logins cannot start with
- * "-", so the placeholder never collides with a real login.
+ * other member off `username` to a placeholder (see RELEASED_USERNAME_PREFIX).
  */
-export async function releaseUsername(username: string, keepGithubId: number): Promise<void> {
-  await db
+export async function releaseUsername(
+  username: string,
+  keepGithubId: number,
+  executor: Executor = db,
+): Promise<void> {
+  await executor
     .update(members)
-    .set({ githubUsername: sql`'-stale-' || ${members.githubId}` })
+    .set({ githubUsername: sql`${RELEASED_USERNAME_PREFIX} || ${members.githubId}` })
     .where(
       and(
         sql`lower(${members.githubUsername}) = ${username.toLowerCase()}`,
@@ -76,11 +83,12 @@ export async function releaseUsername(username: string, keepGithubId: number): P
 export async function updateMemberFields(
   id: string,
   values: Partial<Omit<NewMember, "id">>,
+  executor: Executor = db,
 ): Promise<Member | null> {
   if (Object.keys(values).length === 0) {
     return findById(id);
   }
-  const rows = await db.update(members).set(values).where(eq(members.id, id)).returning();
+  const rows = await executor.update(members).set(values).where(eq(members.id, id)).returning();
   return rows[0] ?? null;
 }
 

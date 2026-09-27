@@ -26,3 +26,6 @@ if (process.env.NODE_ENV !== "production") {
 export const db = drizzle(pool, { schema });
 
 export type Database = typeof db;
+
+/** The database, or a transaction opened on it. */
+export type Executor = Database | Parameters<Parameters<Database["transaction"]>[0]>[0];

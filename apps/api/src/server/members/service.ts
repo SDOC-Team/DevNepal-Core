@@ -1,6 +1,7 @@
 import { type AdminMemberUpdate, displayNameSchema, type ProfileUpdate } from "@gov-portal/shared";
 
 import { isAdminGithubId } from "@/config";
+import { db } from "@/db/client";
 import type { Member, MemberStatus, NewMember } from "@/db/schema";
 
 import { storeGithubAvatar } from "../avatars";
@@ -36,20 +37,27 @@ export async function ensureMemberFromGithubLogin(identity: GithubIdentity): Pro
   const existing = await repo.findByGithubId(identity.githubId);
   if (existing !== null) {
     const updates: Partial<Omit<NewMember, "id">> = {};
-    if (existing.githubUsername !== identity.githubUsername) {
-      await repo.releaseUsername(identity.githubUsername, identity.githubId);
-      updates.githubUsername = identity.githubUsername;
-    }
     if (existing.avatarPath === null && identity.avatarUrl !== null) {
       const stored = await storeGithubAvatar(identity.githubId, identity.avatarUrl);
       if (stored !== null) {
         updates.avatarPath = stored;
       }
     }
+    const renamed = existing.githubUsername !== identity.githubUsername;
+    if (renamed) {
+      updates.githubUsername = identity.githubUsername;
+    }
     if (Object.keys(updates).length === 0) {
       return existing;
     }
-    const updated = await repo.updateMemberFields(existing.id, updates);
+    // Releasing the name from another member and taking it must commit
+    // together, or a failure in between leaves the name held by nobody.
+    const updated = await db.transaction(async (tx) => {
+      if (renamed) {
+        await repo.releaseUsername(identity.githubUsername, identity.githubId, tx);
+      }
+      return repo.updateMemberFields(existing.id, updates, tx);
+    });
     if (updated === null) {
       throw new Error(`Member ${existing.id} disappeared while updating the GitHub identity`);
     }
@@ -61,13 +69,18 @@ export async function ensureMemberFromGithubLogin(identity: GithubIdentity): Pro
       ? await storeGithubAvatar(identity.githubId, identity.avatarUrl)
       : null;
 
-  await repo.releaseUsername(identity.githubUsername, identity.githubId);
-  const created = await repo.insertMember({
-    githubId: identity.githubId,
-    githubUsername: identity.githubUsername,
-    avatarPath,
-    displayName: initialDisplayName(identity.displayName, identity.githubUsername),
-    status: "pending",
+  const created = await db.transaction(async (tx) => {
+    await repo.releaseUsername(identity.githubUsername, identity.githubId, tx);
+    return repo.insertMember(
+      {
+        githubId: identity.githubId,
+        githubUsername: identity.githubUsername,
+        avatarPath,
+        displayName: initialDisplayName(identity.displayName, identity.githubUsername),
+        status: "pending",
+      },
+      tx,
+    );
   });
   if (created !== null) {
     return created;
