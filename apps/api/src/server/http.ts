@@ -45,10 +45,6 @@ export function json(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), { ...init, headers });
 }
 
-export function empty(status: number): Response {
-  return new Response(null, { status, headers: corsHeaders() });
-}
-
 export function binary(data: Uint8Array, contentType: string, init: ResponseInit = {}): Response {
   const headers = corsHeaders();
   headers.set("content-type", contentType);
