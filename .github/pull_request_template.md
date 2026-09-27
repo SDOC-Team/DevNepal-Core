@@ -18,3 +18,10 @@
 ## Notes for reviewers
 
 <!-- Anything reviewers should pay extra attention to. -->
+
+## Foundation checklist
+
+- [ ] Commits signed off (`git commit -s`)
+- [ ] Works in **both** English and Nepali where applicable
+- [ ] No secrets or real personal data anywhere in the diff
+- [ ] Documentation updated; English and Nepali versions agree where both exist

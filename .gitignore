@@ -36,3 +36,5 @@ coverage/
 # Agent instructions that `next dev` regenerates
 /apps/api/AGENTS.md
 /apps/api/CLAUDE.md
+.claude/
+.codex/
