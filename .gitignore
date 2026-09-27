@@ -34,5 +34,5 @@ coverage/
 *.log
 
 # Agent instructions that `next dev` regenerates
-AGENTS.md
-CLAUDE.md
+/apps/api/AGENTS.md
+/apps/api/CLAUDE.md
