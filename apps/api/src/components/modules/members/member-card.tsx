@@ -172,7 +172,8 @@ export function MemberCard({
                 className="transition-opacity duration-200 ease-out data-starting-style:opacity-0"
               />
             ) : null}
-            <AvatarFallback>{initials(member.displayName)}</AvatarFallback>
+            {/* The name is shown next to the avatar, so the initials are decorative. */}
+            <AvatarFallback aria-hidden>{initials(member.displayName)}</AvatarFallback>
             <AvatarBadge className="bg-background text-primary ring-0">
               <SealCheckIcon weight="fill" aria-hidden />
             </AvatarBadge>

@@ -217,7 +217,7 @@ export default function MembersPage() {
                               {member.avatarUrl !== null ? (
                                 <AvatarImage src={member.avatarUrl} alt={member.displayName} />
                               ) : null}
-                              <AvatarFallback>
+                              <AvatarFallback aria-hidden>
                                 {member.displayName.slice(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>

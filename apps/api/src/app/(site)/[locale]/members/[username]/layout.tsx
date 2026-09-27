@@ -7,7 +7,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username } = await params;
   const title = `@${username}`;
-  const description = `View ${username}'s approved public profile on Dev Nepal, including the details they chose to share.`;
+  // Metadata is built from the URL alone, so it must not claim the profile
+  // exists or is approved.
+  const description = `Dev Nepal member profile for @${username}.`;
   return {
     title,
     description,
