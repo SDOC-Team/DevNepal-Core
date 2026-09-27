@@ -15,6 +15,7 @@ build/
 .env
 .env.*
 !.env.example
+*.pem
 
 # Runtime storage (avatars)
 storage/
@@ -31,3 +32,7 @@ coverage/
 
 # Logs
 *.log
+
+# Agent instructions that `next dev` regenerates
+AGENTS.md
+CLAUDE.md
