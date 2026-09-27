@@ -1,6 +1,6 @@
 "use client";
 
-import { SKILLS } from "@gov-portal/shared";
+import { isReleasedUsername, SKILLS } from "@gov-portal/shared";
 import { RowsIcon, SquaresFourIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -228,9 +228,11 @@ export default function MembersPage() {
                               >
                                 {member.displayName}
                               </Link>
-                              <span className="text-xs text-muted-foreground">
-                                @{member.githubUsername}
-                              </span>
+                              {isReleasedUsername(member.githubUsername) ? null : (
+                                <span className="text-xs text-muted-foreground">
+                                  @{member.githubUsername}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>

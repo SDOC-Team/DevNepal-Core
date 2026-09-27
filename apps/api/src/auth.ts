@@ -5,6 +5,7 @@ import { getEnv } from "./config";
 import { findByGithubId } from "./server/members/repository";
 import { ensureMemberFromGithubLogin } from "./server/members/service";
 import { resolveRedirectTarget } from "./server/redirect";
+import { withoutProfileClaims } from "./server/session-token";
 
 type GithubIdentity = {
   id: number;
@@ -65,16 +66,17 @@ export const { handlers, auth } = NextAuth({
       return true;
     },
     async jwt({ token, account, profile }) {
+      const cleaned = withoutProfileClaims(token);
       if (account !== null && profile !== undefined) {
         const identity = readGithubProfile(profile);
         if (identity !== null) {
           const member = await findByGithubId(identity.id);
           if (member !== null) {
-            token.memberId = member.id;
+            cleaned.memberId = member.id;
           }
         }
       }
-      return token;
+      return cleaned;
     },
     async session({ session, token }) {
       if (typeof token.memberId === "string") {

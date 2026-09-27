@@ -11,8 +11,11 @@ export type RedirectTargetInput = {
  */
 export function resolveRedirectTarget({ url, baseUrl, webOrigin }: RedirectTargetInput): string {
   if (url.startsWith("/") && !url.startsWith("//")) {
+    // The URL parser treats "/\host" and "/\t/host" as another origin, so
+    // check the origin after resolving instead of trusting the leading slash.
     try {
-      return new URL(url, baseUrl).toString();
+      const resolved = new URL(url, baseUrl);
+      return resolved.origin === new URL(baseUrl).origin ? resolved.toString() : baseUrl;
     } catch {
       return baseUrl;
     }

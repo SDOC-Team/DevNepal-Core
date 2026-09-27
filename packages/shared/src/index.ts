@@ -21,6 +21,7 @@ export {
   projectDtoSchema,
 } from "./project";
 export { SKILLS, type Skill, skillSchema } from "./skills";
+export { isReleasedUsername, RELEASED_USERNAME_PREFIX } from "./username";
 export {
   type AdminMemberUpdate,
   adminMemberUpdateSchema,

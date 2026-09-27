@@ -31,6 +31,11 @@ describe("resolveRedirectTarget", () => {
     expect(resolve("//evil.example/phish")).toBe(baseUrl);
   });
 
+  it("rejects paths that the URL parser turns into another origin", () => {
+    expect(resolve("/\\evil.example/phish")).toBe(baseUrl);
+    expect(resolve("/\t/evil.example")).toBe(baseUrl);
+  });
+
   it("rejects non-HTTP schemes and malformed values", () => {
     expect(resolve("javascript:alert(1)")).toBe(baseUrl);
     expect(resolve("not a url")).toBe(baseUrl);

@@ -1,6 +1,6 @@
 "use client";
 
-import type { PublicMemberDto } from "@gov-portal/shared";
+import { isReleasedUsername, type PublicMemberDto } from "@gov-portal/shared";
 import { BuildingsIcon, MapPinIcon, SealCheckIcon, StarIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -191,7 +191,8 @@ export function MemberCard({
               ) : null}
             </div>
             <p className="m-0 truncate text-sm font-medium text-muted-foreground">
-              {member.headline ?? `@${member.githubUsername}`}
+              {member.headline ??
+                (isReleasedUsername(member.githubUsername) ? null : `@${member.githubUsername}`)}
             </p>
           </div>
         </div>
