@@ -35,8 +35,8 @@ ENV STORAGE_DIR=/app/storage
 
 RUN mkdir -p /app/storage && chown node:node /app/storage
 
-# Standalone output does not include public/ or static/; both are required for
-# the UI (design CSS, fonts, emblem) and must be copied explicitly.
+# Standalone output does not include public/ or .next/static; the UI needs both
+# (client bundles, stylesheets, images), so they are copied explicitly.
 COPY --from=build --chown=node:node /repo/apps/api/.next/standalone/ ./
 COPY --from=build --chown=node:node /repo/apps/api/.next/static ./apps/api/.next/static
 COPY --from=build --chown=node:node /repo/apps/api/public ./apps/api/public

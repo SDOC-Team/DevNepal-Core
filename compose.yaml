@@ -7,8 +7,9 @@ services:
       POSTGRES_USER: refined
       POSTGRES_PASSWORD: refined
       POSTGRES_DB: refined
+    # Override the host ports with DB_PORT / API_PORT when they are taken.
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - gov-portal-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -28,7 +29,7 @@ services:
       DATABASE_URL: postgres://refined:refined@db:5432/refined
       STORAGE_DIR: /app/storage
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${API_PORT:-3000}:3000"
     volumes:
       - gov-portal-avatars:/app/storage
     depends_on:
@@ -36,7 +37,9 @@ services:
         condition: service_completed_successfully
 
   # Gate API startup on a successful schema migration. This is safe to rerun:
-  # Drizzle records applied migrations in the database.
+  # Drizzle records applied migrations in the database. The image also carries
+  # the repository scripts, so it runs one-off tasks too:
+  #   docker compose run --rm migrate bun run db:init
   migrate:
     build:
       context: .
