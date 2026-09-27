@@ -1,30 +1,44 @@
 import { z } from "zod";
 
-const envSchema = z.object({
-  DATABASE_URL: z.url(),
-  AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
-  AUTH_GITHUB_ID: z.string().min(1, "AUTH_GITHUB_ID is required"),
-  AUTH_GITHUB_SECRET: z.string().min(1, "AUTH_GITHUB_SECRET is required"),
-  ADMIN_GITHUB_IDS: z.string().default(""),
-  WEB_ORIGIN: z.url().default("http://localhost:5173"),
-  STORAGE_DIR: z.string().min(1).default("./storage"),
-  GITHUB_WEBHOOK_SECRET: z.string().default(""),
-});
+const envSchema = z
+  .object({
+    NODE_ENV: z.string().optional(),
+    DATABASE_URL: z.url(),
+    AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
+    AUTH_GITHUB_ID: z.string().min(1, "AUTH_GITHUB_ID is required"),
+    AUTH_GITHUB_SECRET: z.string().min(1, "AUTH_GITHUB_SECRET is required"),
+    // The public origin. Auth.js builds the GitHub callback URL from it; without
+    // it the production server uses its own bind address (0.0.0.0:3000).
+    AUTH_URL: z.url().optional(),
+    ADMIN_GITHUB_IDS: z.string().default(""),
+    WEB_ORIGIN: z.url().default("http://localhost:5173"),
+    STORAGE_DIR: z.string().min(1).default("./storage"),
+    GITHUB_WEBHOOK_SECRET: z.string().default(""),
+  })
+  .refine((env) => env.NODE_ENV !== "production" || env.AUTH_URL !== undefined, {
+    path: ["AUTH_URL"],
+    message: "AUTH_URL is required in production, e.g. https://devnepal.gov.np",
+  });
 
 export type AppEnv = z.infer<typeof envSchema>;
+
+/** Validates an environment; throws with every problem listed. */
+export function parseEnv(env: Record<string, string | undefined>): AppEnv {
+  const parsed = envSchema.safeParse(env);
+  if (!parsed.success) {
+    const details = parsed.error.issues
+      .map((issue) => `  - ${issue.path.join(".") || "(root)"}: ${issue.message}`)
+      .join("\n");
+    throw new Error(`Invalid environment configuration:\n${details}`);
+  }
+  return parsed.data;
+}
 
 let cachedEnv: AppEnv | null = null;
 
 export function getEnv(): AppEnv {
   if (cachedEnv === null) {
-    const parsed = envSchema.safeParse(process.env);
-    if (!parsed.success) {
-      const details = parsed.error.issues
-        .map((issue) => `  - ${issue.path.join(".") || "(root)"}: ${issue.message}`)
-        .join("\n");
-      throw new Error(`Invalid environment configuration:\n${details}`);
-    }
-    cachedEnv = parsed.data;
+    cachedEnv = parseEnv(process.env);
   }
   return cachedEnv;
 }

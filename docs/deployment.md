@@ -25,7 +25,9 @@ read at runtime from the process environment.
    (`openssl rand -base64 48`). Changing it signs everyone out.
 4. **GitHub OAuth**: add the production callback URL to the OAuth App /
    GitHub App (`https://<host>/api/auth/callback/github`) — the localhost
-   one does not carry over. Set `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`.
+   one does not carry over. Set `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`, and set
+   `AUTH_URL` to the public origin (`https://<host>`). The app refuses to start
+   in production without it.
 5. **`ADMIN_GITHUB_IDS`** — comma-separated numeric IDs; empty means nobody can
    moderate.
 6. **`STORAGE_DIR`** must point at a **persistent volume** (avatars). In the
@@ -53,6 +55,7 @@ read at runtime from the process environment.
 | Browser PATCH rejected with 403 after deployment | Origin guard must trust the proxy-resolved own origin | Request-origin + `x-forwarded-*` support in `assertSameOrigin` |
 | Everyone shares one rate-limit bucket behind a tunnel | Proxy IPs hide the client | `cf-connecting-ip` → `x-forwarded-for` → `x-real-ip` order in `clientIp` |
 | Timestamps show UTC on the server | Server renders dates | All display formatting pinned to `Asia/Kathmandu` (`src/lib/format.ts`) |
+| GitHub sign-in fails with a callback URL mismatch | Without `AUTH_URL` the standalone server builds the callback from its own bind address (`0.0.0.0:3000`), and forwarded host headers do not change it | Set `AUTH_URL`; the app refuses to start in production without it |
 | Sessions break on HTTP | Auth.js marks cookies secure on HTTPS; `trustHost` is enabled | Terminate TLS at the proxy; do not serve the app over plain HTTP |
 | `/health` reports 503 in a healthy container | It checks the database | Correct: the check is a real dependency probe; investigate the DB |
 | Rate limits reset on restart | In-memory counters, single instance | Accept for one replica; move to a shared store before scaling out |
