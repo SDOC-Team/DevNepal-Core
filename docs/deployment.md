@@ -13,6 +13,15 @@ The image is built by `bun run build` in the container, which has **no `.env`
 files** — verified to build without environment variables. All configuration is
 read at runtime from the process environment.
 
+With Docker Compose, put the settings in a `.env` file next to
+`docker-compose.yml`; hosting platforms that deploy a Compose file usually write
+this file from their settings screen. Compose also reads `apps/api/.env.local`,
+the file local development uses, and that one wins where both set a value. See
+`apps/api/.env.example` for every setting. Set `POSTGRES_PASSWORD` (URL-safe,
+for example `openssl rand -hex 24`) before the first start: Postgres only reads
+it when it creates the database, and the app's `DATABASE_URL` is built from
+it.
+
 ## Before you deploy — checklist
 
 1. **Postgres 17** reachable from the app. Set `DATABASE_URL`.
@@ -20,8 +29,8 @@ read at runtime from the process environment.
    waits for the one-shot `migrate` service, which runs the same image, to
    finish successfully. Outside Compose, run `node scripts/migrate.js` in the
    image, or `bun run db:migrate` from a checkout, against the target database
-   first. The app
-   process itself never migrates, so a crash-looping app cannot half-migrate a
+   first. The app process itself never migrates, so a crash-looping app cannot
+   half-migrate a
    database.
 3. **`AUTH_SECRET`** ≥ 32 characters, generated fresh per environment
    (`openssl rand -base64 48`). Changing it signs everyone out.
