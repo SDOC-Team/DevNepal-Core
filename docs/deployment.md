@@ -22,6 +22,41 @@ for example `openssl rand -hex 24`) before the first start: Postgres only reads
 it when it creates the database, and the app's `DATABASE_URL` is built from
 it.
 
+## Deploying on Dokploy
+
+`prod-docker-compose.yaml` is the production stack for
+[Dokploy](https://docs.dokploy.com/docs/core/docker-compose): Postgres, a
+one-shot migration, and the app, with nothing published on the host.
+
+1. **Create the service.** In a Dokploy project, add a **Docker Compose**
+   service from this repository, branch `main`, with the compose path set to
+   `./prod-docker-compose.yaml`.
+2. **Set the environment** (Environment tab). Dokploy writes it to `.env` next
+   to the compose file, and the stack loads that file. Required:
+   - `AUTH_URL`: the public origin, for example `https://devnepal.gov.np`
+   - `AUTH_SECRET`: `openssl rand -base64 48`
+   - `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`: the production GitHub OAuth App
+   - `POSTGRES_PASSWORD`: URL-safe, for example `openssl rand -hex 24`. Set it
+     before the first deploy; Postgres only reads it when it creates the
+     database.
+
+   Optional: `ADMIN_GITHUB_IDS`, `GITHUB_TOKEN`, `GITHUB_PROJECT_REPOSITORY`,
+   `POSTGRES_USER` and `POSTGRES_DB` (both default to `devnepal`). Compose
+   refuses to deploy without `AUTH_URL` or `POSTGRES_PASSWORD`, naming the
+   missing one.
+3. **Add the domain** (Domains tab): service `app`, container port `3000`,
+   HTTPS on. Point the domain's DNS at the server, and set the OAuth App's
+   callback URL to `https://<domain>/api/auth/callback/github`.
+4. **Deploy.** The migration runs first and the app starts once it succeeds.
+5. **Load the project once.** In the `app` container's terminal, run
+   `node scripts/init-project.js`. To refresh issues on a schedule, add
+   `node scripts/sync-github.js` to the `app` service under Schedules.
+
+The database and avatars live in the named volumes `pgdata` and `avatars`; add
+them to Dokploy's volume backups. The server builds the image on each deploy,
+which needs a few GB of free memory. Building in CI and deploying from a
+registry image avoids that, as Dokploy recommends.
+
 ## Before you deploy — checklist
 
 1. **Postgres 17** reachable from the app. Set `DATABASE_URL`.
