@@ -1,6 +1,6 @@
 name: Nepali translation or content
 description: Improve Nepali wording, terminology, or English microcopy
-labels: [i18n, nepali-language]
+labels: [i18n, nepali-language, needs-spec]
 body:
   - type: markdown
     attributes:
@@ -10,6 +10,13 @@ body:
     attributes:
       label: Where is it?
       placeholder: "Page, or the string key"
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Choose the closest area. Maintainers will apply the matching area label.
+      options: ["area/portal", "area/members", "area/ui", "area/content", "area/tooling", "Not sure"]
     validations: { required: true }
   - type: textarea
     id: current

@@ -1,5 +1,6 @@
-name: Task
-description: A well-scoped piece of work ready for a contributor
+name: Task proposal
+description: Propose a scoped piece of work for maintainer triage
+labels: [needs-spec]
 body:
   - type: textarea
     id: context
@@ -17,6 +18,13 @@ body:
     attributes:
       label: Out of scope
       description: Be explicit. This field prevents most oversized pull requests and protects your time.
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Choose the closest area. Maintainers will apply the matching area label.
+      options: ["area/portal", "area/members", "area/ui", "area/content", "area/tooling", "Not sure"]
     validations: { required: true }
   - type: textarea
     id: acceptance

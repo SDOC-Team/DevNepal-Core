@@ -1,6 +1,6 @@
 name: Bug
 description: Something is not working
-labels: [bug]
+labels: [bug, needs-spec]
 body:
   - type: markdown
     attributes:
@@ -12,6 +12,13 @@ body:
   - type: textarea
     id: expected
     attributes: { label: What should happen }
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Choose the closest area. Maintainers will apply the matching area label.
+      options: ["area/portal", "area/members", "area/ui", "area/content", "area/tooling", "Not sure"]
     validations: { required: true }
   - type: textarea
     id: steps

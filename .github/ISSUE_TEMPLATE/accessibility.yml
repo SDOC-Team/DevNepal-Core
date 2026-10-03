@@ -1,0 +1,36 @@
+name: Accessibility
+description: Report a keyboard, focus, screen-reader, contrast, or touch-target barrier
+labels: [a11y, needs-spec]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is the barrier for a user?
+    validations: { required: true }
+  - type: input
+    id: page
+    attributes:
+      label: Page or component
+      description: Include the route or UI component, if known.
+    validations: { required: true }
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      description: Include keyboard steps, assistive technology, or browser details where relevant.
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen instead?
+    validations: { required: true }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Choose the closest area. Maintainers will apply the matching area label.
+      options: ["area/portal", "area/members", "area/ui", "area/content", "area/tooling", "Not sure"]
+    validations: { required: true }
+  - type: markdown
+    attributes:
+      value: "Please do not include real personal data, credentials, or production records."
